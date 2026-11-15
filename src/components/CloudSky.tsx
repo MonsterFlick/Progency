@@ -466,9 +466,9 @@ export function OriginkitBase_CloudSky(props: CloudSkyProps) {
             ptrRef.current.inside = false
         }
 
-        canvas.addEventListener("pointermove", track)
-        canvas.addEventListener("pointerenter", track)
-        canvas.addEventListener("pointerleave", onLeave)
+        window.addEventListener("pointermove", track)
+        window.addEventListener("pointerenter", track)
+        document.addEventListener("mouseleave", onLeave)
 
         raf = requestAnimationFrame(render)
 
@@ -476,9 +476,9 @@ export function OriginkitBase_CloudSky(props: CloudSkyProps) {
         // StrictMode's mount -> cleanup -> mount would reuse a force-lost one.
         return () => {
             cancelAnimationFrame(raf)
-            canvas.removeEventListener("pointermove", track)
-            canvas.removeEventListener("pointerenter", track)
-            canvas.removeEventListener("pointerleave", onLeave)
+            window.removeEventListener("pointermove", track)
+            window.removeEventListener("pointerenter", track)
+            document.removeEventListener("mouseleave", onLeave)
         }
     }, [])
 

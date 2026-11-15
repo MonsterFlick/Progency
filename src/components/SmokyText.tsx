@@ -163,13 +163,15 @@ function buildKF(color: string, intensity: number) {
     const ic = r(1.3 + n * 0.5) // 1.3 → 1.8 (even chars)
     const ic2 = r(1.15 + n * 0.35) // 1.15 → 1.5 (odd chars)
 
+    const rest = `0 0 1px ${color}, 0 2px 14px rgba(255, 255, 255, 0.55), 0 6px 28px rgba(180, 220, 255, 0.4)`
+
     return `
-@keyframes smt-ap-c-a{from{opacity:0;text-shadow:${init};transform:scale(${ic})}40%{text-shadow:${peak}}to{opacity:1;text-shadow:0 0 0 ${color};transform:none}}
-@keyframes smt-ap-c-b{from{opacity:0;text-shadow:${init};transform:scale(${ic2})}40%{text-shadow:${peak}}to{opacity:1;text-shadow:0 0 0 ${color};transform:none}}
-@keyframes smt-ap-bl-a{from{opacity:0;text-shadow:${init};transform:translate3d(${r(-15 * d)}rem,${r(8 * d)}rem,0) rotate(40deg) skewX(-70deg) scale(0.7)}40%{text-shadow:${peak}}to{opacity:1;text-shadow:0 0 0 ${color};transform:none}}
-@keyframes smt-ap-bl-b{from{opacity:0;text-shadow:${init};transform:translate3d(${r(-18 * d)}rem,${r(8 * d)}rem,0) rotate(40deg) skewX(70deg) scale(0.5)}40%{text-shadow:${peak}}to{opacity:1;text-shadow:0 0 0 ${color};transform:none}}
-@keyframes smt-ap-tl-a{from{opacity:0;text-shadow:${init};transform:translate3d(${r(-15 * d)}rem,${r(-8 * d)}rem,0) rotate(-40deg) skewX(70deg) scale(0.7)}40%{text-shadow:${peak}}to{opacity:1;text-shadow:0 0 0 ${color};transform:none}}
-@keyframes smt-ap-tl-b{from{opacity:0;text-shadow:${init};transform:translate3d(${r(-18 * d)}rem,${r(-8 * d)}rem,0) rotate(-40deg) skewX(-70deg) scale(0.5)}40%{text-shadow:${peak}}to{opacity:1;text-shadow:0 0 0 ${color};transform:none}}
+@keyframes smt-ap-c-a{from{opacity:0;text-shadow:${init};transform:scale(${ic})}40%{text-shadow:${peak}}to{opacity:1;text-shadow:${rest};transform:none}}
+@keyframes smt-ap-c-b{from{opacity:0;text-shadow:${init};transform:scale(${ic2})}40%{text-shadow:${peak}}to{opacity:1;text-shadow:${rest};transform:none}}
+@keyframes smt-ap-bl-a{from{opacity:0;text-shadow:${init};transform:translate3d(${r(-15 * d)}rem,${r(8 * d)}rem,0) rotate(40deg) skewX(-70deg) scale(0.7)}40%{text-shadow:${peak}}to{opacity:1;text-shadow:${rest};transform:none}}
+@keyframes smt-ap-bl-b{from{opacity:0;text-shadow:${init};transform:translate3d(${r(-18 * d)}rem,${r(8 * d)}rem,0) rotate(40deg) skewX(70deg) scale(0.5)}40%{text-shadow:${peak}}to{opacity:1;text-shadow:${rest};transform:none}}
+@keyframes smt-ap-tl-a{from{opacity:0;text-shadow:${init};transform:translate3d(${r(-15 * d)}rem,${r(-8 * d)}rem,0) rotate(-40deg) skewX(70deg) scale(0.7)}40%{text-shadow:${peak}}to{opacity:1;text-shadow:${rest};transform:none}}
+@keyframes smt-ap-tl-b{from{opacity:0;text-shadow:${init};transform:translate3d(${r(-18 * d)}rem,${r(-8 * d)}rem,0) rotate(-40deg) skewX(-70deg) scale(0.5)}40%{text-shadow:${peak}}to{opacity:1;text-shadow:${rest};transform:none}}
 `
 }
 
@@ -431,7 +433,7 @@ export default function SmokyText(__props: SmokyTextProps = {}) {
                 display: "flex",
                 alignItems: "center",
                 justifyContent: justify,
-                overflow: "",
+                pointerEvents: appearTrigger === "hover" ? "auto" : "none",
                 ...style,
             }}
         >
@@ -444,6 +446,7 @@ export default function SmokyText(__props: SmokyTextProps = {}) {
                     textAlign: textAlign as any,
                     wordBreak: "keep-all",
                     overflowWrap: "normal",
+                    pointerEvents: "none",
                 }}
             >
                 {groups.map((group) => {
@@ -473,9 +476,10 @@ export default function SmokyText(__props: SmokyTextProps = {}) {
                             }}
                         >
                             {group.chars.map((c) => {
+                                const restShadow = `0 0 1px ${color}, 0 2px 14px rgba(255, 255, 255, 0.55), 0 6px 28px rgba(180, 220, 255, 0.4)`
                                 const base: React.CSSProperties = {
                                     display: "inline-block",
-                                    textShadow: `0 0 0 ${color}`,
+                                    textShadow: restShadow,
                                 }
 
                                 if (phase === "hidden")
