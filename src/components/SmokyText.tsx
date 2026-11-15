@@ -215,6 +215,7 @@ export interface SmokyTextProps {
     animationMode?: AnimationMode
     className?: string
     style?: React.CSSProperties
+    forceVisible?: boolean
 }
 
 /**
@@ -235,6 +236,7 @@ export default function SmokyText(__props: SmokyTextProps = {}) {
         intensity = 10,
         className,
         style,
+        forceVisible = false,
     } = props
     const position = (props.position ?? "bottomLeft") as Position
     const animationMode = (props.animationMode ?? "singleLine") as AnimationMode
@@ -476,26 +478,10 @@ export default function SmokyText(__props: SmokyTextProps = {}) {
                             }}
                         >
                             {group.chars.map((c) => {
-                                const restShadow = `0 0 1px ${color}, 0 2px 14px rgba(255, 255, 255, 0.55), 0 6px 28px rgba(180, 220, 255, 0.4)`
-                                const base: React.CSSProperties = {
-                                    display: "inline-block",
-                                    textShadow: restShadow,
-                                }
                                 const isG = c.char.toUpperCase() === "G"
+                                const isSolid = forceVisible || phase === "visible"
 
-                                if (phase === "hidden")
-                                    return (
-                                        <span
-                                            key={c.globalIdx}
-                                            id={isG ? "hero-letter-g" : undefined}
-                                            data-char={c.char}
-                                            style={{ ...base, opacity: 0 }}
-                                        >
-                                            {c.char}
-                                        </span>
-                                    )
-
-                                if (phase === "visible")
+                                if (isSolid) {
                                     return (
                                         <span
                                             key={c.globalIdx}
@@ -504,13 +490,29 @@ export default function SmokyText(__props: SmokyTextProps = {}) {
                                             style={{
                                                 display: "inline-block",
                                                 color: color || "#FFFFFF",
-                                                textShadow: "0 0 2px rgba(255, 255, 255, 0.8)",
                                                 opacity: 1,
                                             }}
                                         >
                                             {c.char}
                                         </span>
                                     )
+                                }
+
+                                if (phase === "hidden") {
+                                    return (
+                                        <span
+                                            key={c.globalIdx}
+                                            id={isG ? "hero-letter-g" : undefined}
+                                            data-char={c.char}
+                                            style={{
+                                                display: "inline-block",
+                                                opacity: 0,
+                                            }}
+                                        >
+                                            {c.char}
+                                        </span>
+                                    )
+                                }
 
                                 if (phase === "appearing") {
                                     const rd = rawAppearDelay(
@@ -539,11 +541,18 @@ export default function SmokyText(__props: SmokyTextProps = {}) {
                                             id={isG ? "hero-letter-g" : undefined}
                                             data-char={c.char}
                                             style={{
-                                                ...base,
-                                                animation: `${anim} ${charDur}s ${delay}s ${appearT.timing} both`,
+                                                display: "inline-block",
+                                                position: "relative",
                                             }}
                                         >
-                                            {c.char}
+                                            <span
+                                                style={{
+                                                    display: "inline-block",
+                                                    animation: `${anim} ${charDur}s ${delay}s ${appearT.timing} both`,
+                                                }}
+                                            >
+                                                {c.char}
+                                            </span>
                                         </span>
                                     )
                                 }

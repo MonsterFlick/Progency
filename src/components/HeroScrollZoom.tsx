@@ -9,7 +9,7 @@ export default function HeroScrollZoom() {
   const trackRef = useRef<HTMLDivElement>(null);
   const [progress, setProgress] = useState(0);
 
-  // Exact coordinates of the letter 'G' in unscaled viewport pixels
+  // Exact coordinates of the letter 'G' in unscaled screen coordinates
   const [gPos, setGPos] = useState<{ x: number; y: number } | null>(null);
 
   // Measure the unscaled screen position of the letter 'G'
@@ -30,8 +30,9 @@ export default function HeroScrollZoom() {
   // Measure on mount and on resize
   useEffect(() => {
     measureG();
-    const t1 = setTimeout(measureG, 100);
-    const t2 = setTimeout(measureG, 500);
+    const t1 = setTimeout(measureG, 50);
+    const t2 = setTimeout(measureG, 250);
+    const t3 = setTimeout(measureG, 800);
 
     if (document.fonts) {
       document.fonts.ready.then(measureG);
@@ -47,6 +48,7 @@ export default function HeroScrollZoom() {
     return () => {
       clearTimeout(t1);
       clearTimeout(t2);
+      clearTimeout(t3);
       window.removeEventListener("resize", onResize);
     };
   }, [measureG]);
@@ -92,14 +94,16 @@ export default function HeroScrollZoom() {
   const centerX = vpW / 2;
   const centerY = vpH / 2;
 
-  // Fallback if not yet measured: letter 'G' is roughly 4% left of screen center in "PROGENCY"
+  // Exact target position of letter 'G':
+  // If not yet measured, 'G' in "PROGENCY" (8 letters) sits ~4% to the left of the screen center
   const targetGx = gPos?.x ?? centerX - vpW * 0.038;
   const targetGy = gPos?.y ?? centerY;
 
-  // Smooth zoom scale: starts at 1, reaches ~16 at p=0.5, reaches ~85+ at p=1
-  const scale = 1 + Math.pow(progress, 2.3) * 85;
+  // Smooth zoom scale accelerating straight into the letter 'G'
+  // Starts at 1, reaches ~17 at p=0.5, and reaches ~90+ at p=1
+  const scale = 1 + Math.pow(progress, 2.4) * 88;
 
-  // Camera shift to glide 'G' directly into the exact center of the screen
+  // Pan shift to glide the letter 'G' directly into the dead-center of the screen as it grows
   const panProgress = Math.pow(progress, 0.85);
   const translateX = (centerX - targetGx) * panProgress;
   const translateY = (centerY - targetGy) * panProgress;
@@ -111,13 +115,13 @@ export default function HeroScrollZoom() {
   // Cursor ribbon trails fade out on zoom
   const cursorOpacity = Math.max(0, 1 - progress * 2.2);
 
-  // Radial white light burst blossoms from inside the G (progress 0.50 -> 0.90)
-  const lightBurstOpacity = Math.max(0, Math.min(1, (progress - 0.48) / 0.38));
+  // Radial white light burst blossoms from inside the G (progress 0.45 -> 0.85)
+  const lightBurstOpacity = Math.max(0, Math.min(1, (progress - 0.45) / 0.38));
 
-  // Solid pure white overlay reaches 100% by progress >= 0.92
-  const solidWhiteOpacity = Math.max(0, Math.min(1, (progress - 0.70) / 0.22));
+  // Pure solid white overlay reaches 100% by progress >= 0.92
+  const solidWhiteOpacity = Math.max(0, Math.min(1, (progress - 0.68) / 0.24));
 
-  // Scroll hint fades out immediately
+  // Scroll hint fades out immediately on first scroll
   const hintOpacity = Math.max(0, 1 - progress * 8);
 
   return (
@@ -157,7 +161,7 @@ export default function HeroScrollZoom() {
           />
         </div>
 
-        {/* Hero Text Zoom Container - Always Centered & Seamlessly Zooming into 'G' */}
+        {/* Hero Text Zoom Container - Scales and Zooms directly into the letter 'G' */}
         <div
           className="absolute inset-0 z-10 flex items-center justify-center pointer-events-none"
           style={{
@@ -173,6 +177,7 @@ export default function HeroScrollZoom() {
               position="bottomLeft"
               animationMode="singleLine"
               appearTrigger="default"
+              forceVisible={progress > 0.01}
               font={{
                 fontFamily: "var(--font-geist-sans), Inter, system-ui, sans-serif",
                 fontWeight: 800,
