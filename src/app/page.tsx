@@ -1,5 +1,6 @@
 import CloudSky from "@/components/CloudSky";
 import SmokyText from "@/components/SmokyText";
+import LineCursor from "@/components/LineCursor";
 
 export default function Home() {
   return (
@@ -49,6 +50,19 @@ export default function Home() {
             textTransform: "uppercase",
             filter: "drop-shadow(0 14px 30px rgba(4, 45, 100, 0.22))",
           }}
+        />
+      </div>
+
+      {/* Interactive Silk Ribbon Trails Cursor Overlay */}
+      <div className="absolute inset-0 z-20 pointer-events-none">
+        <LineCursor
+          colors={["#FFFFFF", "#7DD3FC", "#BAE6FD", "#E0F2FE", "#38BDF8"]}
+          colorShift={1.5}
+          opacity={45}
+          thickness={1.8}
+          trails={50}
+          trailLength={26}
+          label={false}
         />
       </div>
     </main>
