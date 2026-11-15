@@ -501,7 +501,12 @@ export default function SmokyText(__props: SmokyTextProps = {}) {
                                             key={c.globalIdx}
                                             id={isG ? "hero-letter-g" : undefined}
                                             data-char={c.char}
-                                            style={{ ...base, opacity: 1 }}
+                                            style={{
+                                                display: "inline-block",
+                                                color: color || "#FFFFFF",
+                                                textShadow: "0 0 2px rgba(255, 255, 255, 0.8)",
+                                                opacity: 1,
+                                            }}
                                         >
                                             {c.char}
                                         </span>

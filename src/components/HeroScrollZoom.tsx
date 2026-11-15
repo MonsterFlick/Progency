@@ -7,57 +7,73 @@ import LineCursor from "@/components/LineCursor";
 
 export default function HeroScrollZoom() {
   const trackRef = useRef<HTMLDivElement>(null);
-  const textWrapperRef = useRef<HTMLDivElement>(null);
+  const svgTextRef = useRef<SVGTextElement>(null);
 
-  // Progress from 0 (hero) to 1 (fully zoomed inside G and white screen)
+  // Scroll progress from 0 (hero) to 1 (fully zoomed inside G and white screen)
   const [progress, setProgress] = useState(0);
 
-  // Center of 'G' in unscaled viewport pixels
-  const [gPos, setGPos] = useState<{ x: number; y: number } | null>(null);
+  // Exact coordinates of the letter 'G' in SVG coordinate space (1920 x 1080)
+  const [svgGPos, setSvgGPos] = useState<{ x: number; y: number } | null>(null);
 
-  // Measure the unscaled layout position of the letter 'G'
-  const measureG = useCallback(() => {
-    const gEl = document.getElementById("hero-letter-g");
-    if (!gEl) return;
+  // Base SVG coordinate space (fixed high-resolution canvas)
+  const BASE_W = 1920;
+  const BASE_H = 1080;
+  const CENTER_X = BASE_W / 2;
+  const CENTER_Y = BASE_H / 2;
 
-    // Use getBoundingClientRect when scale is 1, or layout offsets
-    const gRect = gEl.getBoundingClientRect();
-    const vpW = window.innerWidth;
-    const vpH = window.innerHeight;
+  // Measure the exact position of 'G' (index 3 in "PROGENCY") in SVG units
+  const measureSvgG = useCallback(() => {
+    if (!svgTextRef.current) return;
 
-    // If progress is near 0, we can read directly from getBoundingClientRect
-    // Otherwise, we compute based on textWrapper
-    if (progress < 0.05) {
-      setGPos({
-        x: gRect.left + gRect.width / 2,
-        y: gRect.top + gRect.height * 0.52,
-      });
-    } else if (textWrapperRef.current) {
-      const containerRect = textWrapperRef.current.getBoundingClientRect();
-      const relativeX = (gRect.left + gRect.width / 2 - containerRect.left) / (containerRect.width || 1);
-      const relativeY = (gRect.top + gRect.height * 0.52 - containerRect.top) / (containerRect.height || 1);
-      setGPos({
-        x: vpW * relativeX,
-        y: vpH * relativeY,
-      });
+    try {
+      // 1. Try standard W3C getExtentOfChar for character index 3 ('G')
+      if (typeof svgTextRef.current.getExtentOfChar === "function") {
+        const charRect = svgTextRef.current.getExtentOfChar(3);
+        if (charRect && charRect.width > 0) {
+          setSvgGPos({
+            x: charRect.x + charRect.width / 2,
+            y: charRect.y + charRect.height * 0.52,
+          });
+          return;
+        }
+      }
+
+      // 2. Fallback to getBBox if getExtentOfChar is unavailable
+      if (typeof svgTextRef.current.getBBox === "function") {
+        const bbox = svgTextRef.current.getBBox();
+        if (bbox && bbox.width > 0) {
+          // 'G' is the 4th letter of 8 letters in "PROGENCY", slightly left of center
+          setSvgGPos({
+            x: bbox.x + bbox.width * 0.428,
+            y: bbox.y + bbox.height * 0.52,
+          });
+        }
+      }
+    } catch {
+      // Fallback calculation for 1920x1080
+      setSvgGPos({ x: 835, y: 540 });
     }
-  }, [progress]);
+  }, []);
 
-  // Initial measurement & resize listeners
   useEffect(() => {
-    // Initial measurement after render
-    const timer = setTimeout(measureG, 100);
-    const timer2 = setTimeout(measureG, 500); // re-check after fonts settle
-    window.addEventListener("resize", measureG);
+    // Measure on mount and after fonts are guaranteed loaded
+    measureSvgG();
+    const t1 = setTimeout(measureSvgG, 100);
+    const t2 = setTimeout(measureSvgG, 400);
 
+    if (document.fonts) {
+      document.fonts.ready.then(measureSvgG);
+    }
+
+    window.addEventListener("resize", measureSvgG);
     return () => {
-      clearTimeout(timer);
-      clearTimeout(timer2);
-      window.removeEventListener("resize", measureG);
+      clearTimeout(t1);
+      clearTimeout(t2);
+      window.removeEventListener("resize", measureSvgG);
     };
-  }, [measureG]);
+  }, [measureSvgG]);
 
-  // Scroll listener using requestAnimationFrame
+  // Scroll handler using requestAnimationFrame
   useEffect(() => {
     let rafId = 0;
 
@@ -71,8 +87,7 @@ export default function HeroScrollZoom() {
       const p = Math.max(0, Math.min(1, scrolled / totalScrollable));
 
       setProgress((prev) => {
-        // Only update if difference is noticeable
-        if (Math.abs(prev - p) > 0.0005) {
+        if (Math.abs(prev - p) > 0.0004) {
           return p;
         }
         return prev;
@@ -93,45 +108,43 @@ export default function HeroScrollZoom() {
     };
   }, []);
 
-  // Compute zoom transformation values
-  const vpW = typeof window !== "undefined" ? window.innerWidth : 1440;
-  const vpH = typeof window !== "undefined" ? window.innerHeight : 900;
-  const centerX = vpW / 2;
-  const centerY = vpH / 2;
+  // Compute Vector Zoom coordinates for SVG viewBox (Zero Raster Blur)
+  const targetGx = svgGPos?.x ?? 835;
+  const targetGy = svgGPos?.y ?? 540;
 
-  // Default target for 'G' if not yet measured (roughly center-left for PROGENCY)
-  const targetGx = gPos?.x ?? centerX - 30;
-  const targetGy = gPos?.y ?? centerY;
-
-  // Zoom scale: exponential ramp into the center of the 'G'
-  // Starts at 1, reaches ~15 at p=0.6, and reaches ~90+ at p=1
+  // Exponential scale accelerating into the G
   const scale = 1 + Math.pow(progress, 2.2) * 88;
 
-  // Shift to glide the 'G' directly to the dead-center of the screen
-  const shiftProgress = Math.pow(progress, 1.4);
-  const translateX = (centerX - targetGx) * shiftProgress;
-  const translateY = (centerY - targetGy) * shiftProgress;
+  // Viewport dimensions in SVG coordinates (shrinks from 1920x1080 down to ~21x12)
+  const vbW = BASE_W / scale;
+  const vbH = BASE_H / scale;
 
-  // Opacities for smooth atmospheric transitions
-  // 1. Sky fades out as we get deep inside the letter
+  // Camera centers onto 'G' as it zooms
+  const panEase = Math.pow(progress, 0.75);
+  const curCenterX = CENTER_X + (targetGx - CENTER_X) * panEase;
+  const curCenterY = CENTER_Y + (targetGy - CENTER_Y) * panEase;
+
+  const vbX = curCenterX - vbW / 2;
+  const vbY = curCenterY - vbH / 2;
+
+  // Opacity transitions
+  // Initial SmokyText fades out seamlessly on scroll start as vector SVG text takes over
+  const smokyOpacity = Math.max(0, 1 - progress * 15);
+  const vectorSvgOpacity = Math.min(1, progress * 15);
+
+  // Sky fades out as we plunge inside the letter
   const skyOpacity = Math.max(0, 1 - Math.pow(progress / 0.82, 2.5));
 
-  // 2. Ribbon cursor trails fade out during zoom
+  // Cursor ribbon trails fade out on zoom
   const cursorOpacity = Math.max(0, 1 - progress * 2.2);
 
-  // 3. Radial light burst centered inside 'G' as it fills the view (progress 0.55 -> 0.90)
-  const lightBurstOpacity = Math.max(
-    0,
-    Math.min(1, (progress - 0.5) / 0.35)
-  );
+  // Radial light burst erupts from inside G
+  const lightBurstOpacity = Math.max(0, Math.min(1, (progress - 0.5) / 0.35));
 
-  // 4. Solid white overlay reaching 100% pure white at progress >= 0.94
-  const solidWhiteOpacity = Math.max(
-    0,
-    Math.min(1, (progress - 0.72) / 0.22)
-  );
+  // Pure solid white overlay reaches 100% at progress >= 0.92
+  const solidWhiteOpacity = Math.max(0, Math.min(1, (progress - 0.7) / 0.22));
 
-  // 5. Scroll hint fades out immediately on first scroll
+  // Scroll hint fades immediately
   const hintOpacity = Math.max(0, 1 - progress * 8);
 
   return (
@@ -171,35 +184,64 @@ export default function HeroScrollZoom() {
           />
         </div>
 
-        {/* Zoom Transform Container centered on 'G' */}
+        {/* 1. Initial State: SmokyText (visible at rest when scroll is at top) */}
+        {smokyOpacity > 0.01 && (
+          <div
+            className="absolute inset-0 z-10 flex items-center justify-center pointer-events-none transition-opacity duration-100"
+            style={{ opacity: smokyOpacity }}
+          >
+            <div className="w-full px-4 flex items-center justify-center">
+              <SmokyText
+                text="PROGENCY"
+                color="#FFFFFF"
+                intensity={12}
+                position="bottomLeft"
+                animationMode="singleLine"
+                appearTrigger="default"
+                font={{
+                  fontFamily: "var(--font-geist-sans), Inter, system-ui, sans-serif",
+                  fontWeight: 800,
+                  fontSize: "clamp(3.5rem, 13vw, 10rem)",
+                  letterSpacing: "0.16em",
+                  textAlign: "center",
+                  textTransform: "uppercase",
+                }}
+              />
+            </div>
+          </div>
+        )}
+
+        {/* 2. Vector SVG Text Zoom (Infinite Mathematical Sharpness - Zero Blur) */}
         <div
-          ref={textWrapperRef}
-          className="absolute inset-0 z-10 flex items-center justify-center pointer-events-none"
+          className="absolute inset-0 z-12 pointer-events-none"
           style={{
-            transformOrigin: `${targetGx}px ${targetGy}px`,
-            transform: `translate3d(${translateX}px, ${translateY}px, 0) scale(${scale})`,
-            willChange: "transform",
+            opacity: progress === 0 ? 0 : 1,
           }}
         >
-          <div className="w-full px-4 flex items-center justify-center">
-            <SmokyText
-              text="PROGENCY"
-              color="rgba(255, 255, 255, 0.97)"
-              intensity={12}
-              position="bottomLeft"
-              animationMode="singleLine"
-              appearTrigger="default"
-              font={{
+          <svg
+            viewBox={`${vbX} ${vbY} ${vbW} ${vbH}`}
+            className="w-full h-full pointer-events-none overflow-visible"
+            preserveAspectRatio="xMidYMid meet"
+            shapeRendering="geometricPrecision"
+            textRendering="geometricPrecision"
+          >
+            <text
+              ref={svgTextRef}
+              x="50%"
+              y="50%"
+              textAnchor="middle"
+              dominantBaseline="central"
+              fill="#FFFFFF"
+              style={{
                 fontFamily: "var(--font-geist-sans), Inter, system-ui, sans-serif",
                 fontWeight: 800,
-                fontSize: "clamp(3.5rem, 13vw, 10rem)",
+                fontSize: "128px",
                 letterSpacing: "0.16em",
-                textAlign: "center",
-                textTransform: "uppercase",
-                filter: "drop-shadow(0 14px 30px rgba(4, 45, 100, 0.22))",
               }}
-            />
-          </div>
+            >
+              PROGENCY
+            </text>
+          </svg>
         </div>
 
         {/* Interactive Silk Ribbon Trails Cursor Overlay */}
@@ -236,7 +278,7 @@ export default function HeroScrollZoom() {
           }}
         />
 
-        {/* Gentle Scroll Hint (Only visible when at top) */}
+        {/* Scroll Hint */}
         {hintOpacity > 0.02 && (
           <div
             className="absolute bottom-8 left-1/2 -translate-x-1/2 z-20 flex flex-col items-center gap-2 pointer-events-none transition-opacity duration-300"
