@@ -481,11 +481,14 @@ export default function SmokyText(__props: SmokyTextProps = {}) {
                                     display: "inline-block",
                                     textShadow: restShadow,
                                 }
+                                const isG = c.char.toUpperCase() === "G"
 
                                 if (phase === "hidden")
                                     return (
                                         <span
                                             key={c.globalIdx}
+                                            id={isG ? "hero-letter-g" : undefined}
+                                            data-char={c.char}
                                             style={{ ...base, opacity: 0 }}
                                         >
                                             {c.char}
@@ -496,6 +499,8 @@ export default function SmokyText(__props: SmokyTextProps = {}) {
                                     return (
                                         <span
                                             key={c.globalIdx}
+                                            id={isG ? "hero-letter-g" : undefined}
+                                            data-char={c.char}
                                             style={{ ...base, opacity: 1 }}
                                         >
                                             {c.char}
@@ -526,6 +531,8 @@ export default function SmokyText(__props: SmokyTextProps = {}) {
                                     return (
                                         <span
                                             key={c.globalIdx}
+                                            id={isG ? "hero-letter-g" : undefined}
+                                            data-char={c.char}
                                             style={{
                                                 ...base,
                                                 animation: `${anim} ${charDur}s ${delay}s ${appearT.timing} both`,
