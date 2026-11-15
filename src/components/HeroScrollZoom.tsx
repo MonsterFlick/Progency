@@ -7,14 +7,21 @@ import LineCursor from "@/components/LineCursor";
 
 export default function HeroScrollZoom() {
   const trackRef = useRef<HTMLDivElement>(null);
+  const iframeRef = useRef<HTMLIFrameElement>(null);
+  const zoomContainerRef = useRef<HTMLDivElement>(null);
   const [progress, setProgress] = useState(0);
+
+  // Hold pause state at "OUR WORK" hero
+  const HOLD_DURATION_MS = 900;
+  const hasPausedRef = useRef(false);
+  const pausedUntilRef = useRef(0);
+  const [isScrollPaused, setIsScrollPaused] = useState(true);
 
   // Exact coordinates of the letter 'G' in unscaled screen coordinates
   const [gPos, setGPos] = useState<{ x: number; y: number } | null>(null);
 
   // Measure the unscaled screen position of the letter 'G'
   const measureG = useCallback(() => {
-    // Only measure when at rest or near the top to capture exact unscaled layout coordinates
     const gEl = document.getElementById("hero-letter-g");
     if (!gEl) return;
 
@@ -88,44 +95,112 @@ export default function HeroScrollZoom() {
     };
   }, []);
 
-  // Viewport dimensions
-  const vpW = typeof window !== "undefined" ? window.innerWidth : 1440;
-  const vpH = typeof window !== "undefined" ? window.innerHeight : 900;
-  const centerX = vpW / 2;
-  const centerY = vpH / 2;
+  // Hold pause trigger: When scroll reaches the "OUR WORK" hero (progress >= 0.85),
+  // hold scrolling for 900ms so top images and photo tiles complete their entrance animation in full view
+  useEffect(() => {
+    if (progress >= 0.85 && !hasPausedRef.current) {
+      hasPausedRef.current = true;
+      const unlockTime = Date.now() + HOLD_DURATION_MS;
+      pausedUntilRef.current = unlockTime;
+      setIsScrollPaused(true);
 
-  // Exact target position of letter 'G':
-  // If not yet measured, 'G' in "PROGENCY" (8 letters) sits ~4% to the left of the screen center
-  const targetGx = gPos?.x ?? centerX - vpW * 0.038;
-  const targetGy = gPos?.y ?? centerY;
+      // Notify portfolio iframe to hold internal scroll
+      iframeRef.current?.contentWindow?.postMessage(
+        { type: "HOLD_HERO_SCROLL", duration: HOLD_DURATION_MS },
+        "*"
+      );
 
-  // Smooth zoom scale accelerating straight into the letter 'G'
-  // Starts at 1, reaches ~17 at p=0.5, and reaches ~90+ at p=1
-  const scale = 1 + Math.pow(progress, 2.4) * 88;
+      // Unlock after entrance animation finishes completely
+      const timer = setTimeout(() => {
+        setIsScrollPaused(false);
+        iframeRef.current?.contentWindow?.postMessage({ type: "UNLOCK_SCROLL" }, "*");
+      }, HOLD_DURATION_MS);
 
-  // Pan shift to glide the letter 'G' directly into the dead-center of the screen as it grows
-  const panProgress = Math.pow(progress, 0.85);
-  const translateX = (centerX - targetGx) * panProgress;
-  const translateY = (centerY - targetGy) * panProgress;
+      return () => clearTimeout(timer);
+    } else if (progress < 0.3) {
+      // Reset pause trigger when user scrolls back up into the cloud sky
+      hasPausedRef.current = false;
+      setIsScrollPaused(true);
+    }
+  }, [progress]);
+
+  // Wheel interceptor for the hold pause and seamless forwarding to the portfolio
+  useEffect(() => {
+    const handleWheel = (e: WheelEvent) => {
+      // If within hold pause, absorb downward wheel so images don't rush out of sight
+      if (Date.now() < pausedUntilRef.current && e.deltaY > 0) {
+        e.preventDefault();
+        e.stopPropagation();
+        return;
+      }
+
+      // When at portfolio stage and unlocked, forward wheel to iframe virtual scroll
+      if (progress >= 0.85 && iframeRef.current?.contentWindow) {
+        iframeRef.current.contentWindow.postMessage(
+          {
+            type: "PARENT_WHEEL",
+            deltaY: e.deltaY,
+            deltaX: e.deltaX,
+            deltaMode: e.deltaMode,
+          },
+          "*"
+        );
+      }
+    };
+
+    window.addEventListener("wheel", handleWheel, { passive: false });
+    return () => window.removeEventListener("wheel", handleWheel);
+  }, [progress]);
+
+  // Upward scroll bridge from the portfolio iframe
+  // Allows user to smoothly scroll back up into the G zoom and cloud sky
+  useEffect(() => {
+    const handleBridgeMessage = (e: MessageEvent) => {
+      if (e.data?.type === "PERAPPELGREN_SCROLL_UP") {
+        window.scrollBy({ top: e.data.deltaY, behavior: "auto" });
+      }
+    };
+    window.addEventListener("message", handleBridgeMessage);
+    return () => window.removeEventListener("message", handleBridgeMessage);
+  }, []);
+
+  // Smooth zoom and pan directly into the letter 'G'
+  // Updated directly via DOM ref to guarantee 100% identical SSR/Client markup and 0 hydration mismatch
+  useEffect(() => {
+    if (!zoomContainerRef.current) return;
+    const vpW = window.innerWidth;
+    const vpH = window.innerHeight;
+    const centerX = vpW / 2;
+    const centerY = vpH / 2;
+    const targetGx = gPos?.x ? gPos.x : centerX - vpW * 0.038;
+    const targetGy = gPos?.y ? gPos.y : centerY;
+    const scale = 1 + Math.pow(progress, 2.4) * 88;
+    const panProgress = Math.pow(progress, 0.85);
+    const translateX = (centerX - targetGx) * panProgress;
+    const translateY = (centerY - targetGy) * panProgress;
+
+    zoomContainerRef.current.style.transformOrigin = `${targetGx}px ${targetGy}px`;
+    zoomContainerRef.current.style.transform = `translate3d(${translateX}px, ${translateY}px, 0) scale(${scale})`;
+  }, [progress, gPos]);
 
   // Atmospheric opacities
-  // Sky background fades out as we plunge inside the G
   const skyOpacity = Math.max(0, 1 - Math.pow(progress / 0.84, 2.5));
-
-  // Cursor ribbon trails fade out on zoom
   const cursorOpacity = Math.max(0, 1 - progress * 2.2);
 
-  // Radial white light burst blossoms from inside the G (progress 0.45 -> 0.85)
-  const lightBurstOpacity = Math.max(0, Math.min(1, (progress - 0.45) / 0.38));
+  // Radial white light burst blossoms from inside the G (progress 0.45 -> 0.80)
+  const lightBurstOpacity = Math.max(0, Math.min(1, (progress - 0.45) / 0.32));
 
-  // Pure solid white overlay reaches 100% by progress >= 0.92
-  const solidWhiteOpacity = Math.max(0, Math.min(1, (progress - 0.68) / 0.24));
+  // Pure solid white transition layer (progress 0.62 -> 0.82)
+  const solidWhiteOpacity = Math.max(0, Math.min(1, (progress - 0.62) / 0.20));
+
+  // Portfolio Experience emerges directly on the white canvas of G (progress 0.68 -> 0.88)
+  const portfolioOpacity = Math.max(0, Math.min(1, (progress - 0.68) / 0.18));
 
   // Scroll hint fades out immediately on first scroll
   const hintOpacity = Math.max(0, 1 - progress * 8);
 
   return (
-    <div ref={trackRef} className="relative w-full h-[320vh] bg-white">
+    <div ref={trackRef} className="relative w-full h-[280vh] bg-white">
       {/* Sticky Fullscreen Viewport */}
       <div className="sticky top-0 h-screen w-full overflow-hidden bg-[#076bdc]">
         {/* Interactive WebGL Cloud Sky Background */}
@@ -163,10 +238,12 @@ export default function HeroScrollZoom() {
 
         {/* Hero Text Zoom Container - Scales and Zooms directly into the letter 'G' */}
         <div
+          ref={zoomContainerRef}
+          suppressHydrationWarning
           className="absolute inset-0 z-10 flex items-center justify-center pointer-events-none"
           style={{
-            transformOrigin: `${targetGx}px ${targetGy}px`,
-            transform: `translate3d(${translateX}px, ${translateY}px, 0) scale(${scale})`,
+            transformOrigin: "center center",
+            transform: "translate3d(0px, 0px, 0) scale(1)",
           }}
         >
           <div className="w-full px-4 flex items-center justify-center">
@@ -177,7 +254,7 @@ export default function HeroScrollZoom() {
               position="bottomLeft"
               animationMode="singleLine"
               appearTrigger="default"
-              forceVisible={progress > 0.01}
+              forceVisible={progress > 0.02}
               font={{
                 fontFamily: "var(--font-geist-sans), Inter, system-ui, sans-serif",
                 fontWeight: 800,
@@ -185,6 +262,7 @@ export default function HeroScrollZoom() {
                 letterSpacing: "0.16em",
                 textAlign: "center",
                 textTransform: "uppercase",
+                filter: "drop-shadow(0 14px 30px rgba(4, 45, 100, 0.22))",
               }}
             />
           </div>
@@ -216,13 +294,30 @@ export default function HeroScrollZoom() {
           }}
         />
 
-        {/* Pure Solid White Full-Screen Overlay */}
+        {/* Pure Solid White Transition Screen */}
         <div
           className="absolute inset-0 z-30 pointer-events-none bg-white transition-opacity duration-75"
           style={{
             opacity: solidWhiteOpacity,
           }}
         />
+
+        {/* OUR WORK Portfolio Experience Blooming Directly on White of 'G' */}
+        <div
+          className="absolute inset-0 z-40 transition-opacity duration-300"
+          style={{
+            opacity: portfolioOpacity,
+            pointerEvents: progress >= 0.85 && !isScrollPaused ? "auto" : "none",
+          }}
+        >
+          <iframe
+            ref={iframeRef}
+            src="/perappelgren"
+            className="w-full h-full border-0 outline-none bg-white"
+            title="Our Work Portfolio Experience"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+          />
+        </div>
 
         {/* Gentle Scroll Hint */}
         {hintOpacity > 0.02 && (

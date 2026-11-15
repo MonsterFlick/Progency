@@ -479,23 +479,10 @@ export default function SmokyText(__props: SmokyTextProps = {}) {
                         >
                             {group.chars.map((c) => {
                                 const isG = c.char.toUpperCase() === "G"
-                                const isSolid = forceVisible || phase === "visible"
-
-                                if (isSolid) {
-                                    return (
-                                        <span
-                                            key={c.globalIdx}
-                                            id={isG ? "hero-letter-g" : undefined}
-                                            data-char={c.char}
-                                            style={{
-                                                display: "inline-block",
-                                                color: color || "#FFFFFF",
-                                                opacity: 1,
-                                            }}
-                                        >
-                                            {c.char}
-                                        </span>
-                                    )
+                                const restShadow = `0 0 1px ${color}, 0 2px 14px rgba(255, 255, 255, 0.55), 0 6px 28px rgba(180, 220, 255, 0.4)`
+                                const base: React.CSSProperties = {
+                                    display: "inline-block",
+                                    textShadow: restShadow,
                                 }
 
                                 if (phase === "hidden") {
@@ -505,8 +492,26 @@ export default function SmokyText(__props: SmokyTextProps = {}) {
                                             id={isG ? "hero-letter-g" : undefined}
                                             data-char={c.char}
                                             style={{
-                                                display: "inline-block",
+                                                ...base,
                                                 opacity: 0,
+                                            }}
+                                        >
+                                            {c.char}
+                                        </span>
+                                    )
+                                }
+
+                                if (phase === "visible") {
+                                    return (
+                                        <span
+                                            key={c.globalIdx}
+                                            id={isG ? "hero-letter-g" : undefined}
+                                            data-char={c.char}
+                                            style={{
+                                                ...base,
+                                                // When actively zooming with scroll, use solid crisp white fill
+                                                color: forceVisible ? (color || "#FFFFFF") : undefined,
+                                                opacity: 1,
                                             }}
                                         >
                                             {c.char}
@@ -547,7 +552,7 @@ export default function SmokyText(__props: SmokyTextProps = {}) {
                                         >
                                             <span
                                                 style={{
-                                                    display: "inline-block",
+                                                    ...base,
                                                     animation: `${anim} ${charDur}s ${delay}s ${appearT.timing} both`,
                                                 }}
                                             >

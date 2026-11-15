@@ -1,0 +1,745 @@
+{
+  "site_info": {
+    "title": "MANTHAN DAVE - Video Editor & Motion Designer Portfolio",
+    "original_site_url": "https://daveportfolio17.wixstudio.com/portfolio",
+    "about_page_url": "https://daveportfolio17.wixstudio.com/portfolio/about",
+    "artist_name": "Manthan Dave",
+    "role": "Video Editor & Motion Designer",
+    "tagline": "Video Editor & Graphic Designer with 4+ years of transforming ideas into visual stories",
+    "bio": "Hi, I’m Manthan Dave, a passionate video editor with 3+ years of experience crafting engaging content for YouTubers, brands, and businesses. From dynamic gaming montages to promotional ads and social media reels, I specialize in bringing stories to life through creative editing, color grading, and sound design. My goal is to turn ideas into visually captivating experiences that connect with audiences and make an impact.",
+    "contact": {
+      "email": "manthandave017@gmail.com",
+      "phone": "+91-8080-112-336",
+      "whatsapp": "http://wa.me/+918080112336",
+      "instagram": "https://www.instagram.com/le_dave__/",
+      "instagram_handle": "@le_dave__",
+      "discord": "dave1707"
+    },
+    "software_skills": [
+      {
+        "name": "Adobe After Effects",
+        "code": "Ae",
+        "icon_path": "assets/images/skills/after_effects.png"
+      },
+      {
+        "name": "Adobe Premiere Pro",
+        "code": "Pr",
+        "icon_path": "assets/images/skills/premiere_pro.png"
+      },
+      {
+        "name": "Adobe Photoshop",
+        "code": "Ps",
+        "icon_path": "assets/images/skills/photoshop.png"
+      },
+      {
+        "name": "Figma",
+        "code": "Figma",
+        "icon_path": "assets/images/skills/figma.png"
+      },
+      {
+        "name": "Vegas Pro",
+        "code": "V",
+        "icon_path": "assets/images/skills/vegas_pro.png"
+      }
+    ]
+  },
+  "categories": [
+    "Short Form Video",
+    "Long Form Video",
+    "Graphic Motion",
+    "Graphics & Thumbnails",
+    "Profile & Identity",
+    "Skills & Tools",
+    "Social Media"
+  ],
+  "total_items": 36,
+  "total_videos": 17,
+  "total_images": 19,
+  "items": [
+    {
+      "id": "shortform-podcast-hook-1",
+      "title": "Podcast Dynamic Hook 01",
+      "category": "Short Form Video",
+      "subcategory": "Podcast Hooks / Reels / TikTok",
+      "type": "video",
+      "source": "Wix Direct Media",
+      "local_video_path": "assets/videos/shortform_podcast_hook_1.mp4",
+      "video_file_size_bytes": 6360765,
+      "raw_source_url": "https://video.wixstatic.com/video/c1453f_121636b44081416f8694bda88175ccd8/720p/mp4/file.mp4",
+      "thumbnail_local_path": "assets/images/video_posters/shortform_poster_1.jpg",
+      "thumbnail_source_url": "https://static.wixstatic.com/media/c1453f_121636b44081416f8694bda88175ccd8f000.jpg",
+      "description": "Engaging short-form vertical video hook with animated kinetic typography, tight sound design, and custom visual overlays. Managed article integration with cohesive text animations, and executed comprehensive sound design to enhance the overall listening experience.",
+      "tags": [
+        "shortform",
+        "reels",
+        "podcast",
+        "kinetic typography",
+        "sound design"
+      ]
+    },
+    {
+      "id": "shortform-podcast-hook-2",
+      "title": "Podcast Dynamic Hook 02",
+      "category": "Short Form Video",
+      "subcategory": "Podcast Hooks / Reels / TikTok",
+      "type": "video",
+      "source": "Wix Direct Media",
+      "local_video_path": "assets/videos/shortform_podcast_hook_2.mp4",
+      "video_file_size_bytes": 7224438,
+      "raw_source_url": "https://video.wixstatic.com/video/c1453f_47f808dac59b4239951df128747a7f31/720p/mp4/file.mp4",
+      "thumbnail_local_path": "assets/images/video_posters/shortform_poster_2.jpg",
+      "thumbnail_source_url": "https://static.wixstatic.com/media/c1453f_47f808dac59b4239951df128747a7f31f000.jpg",
+      "description": "Fast-paced vertical reel incorporating article quotes, dynamic motion text, sound effects, and color graded camera footage. Created and designed engaging podcast hooks, including typography and dynamic text animations.",
+      "tags": [
+        "shortform",
+        "vertical video",
+        "typography",
+        "motion design"
+      ]
+    },
+    {
+      "id": "shortform-podcast-hook-3",
+      "title": "Podcast Dynamic Hook 03",
+      "category": "Short Form Video",
+      "subcategory": "Podcast Hooks / Reels / TikTok",
+      "type": "video",
+      "source": "Wix Direct Media",
+      "local_video_path": "assets/videos/shortform_podcast_hook_3.mp4",
+      "video_file_size_bytes": 5892454,
+      "raw_source_url": "https://video.wixstatic.com/video/c1453f_48b30a86354f43e8a741a0cec327dfa1/720p/mp4/file.mp4",
+      "thumbnail_local_path": "assets/images/video_posters/shortform_poster_3.jpg",
+      "thumbnail_source_url": "https://static.wixstatic.com/media/c1453f_48b30a86354f43e8a741a0cec327dfa1f000.jpg",
+      "description": "High-retention social hook video with rhythmic editing, cinematic audio sweeps, and engaging subtitle styling.",
+      "tags": [
+        "shortform",
+        "retention editing",
+        "sound design",
+        "subtitles"
+      ]
+    },
+    {
+      "id": "longform-yemen-crisis",
+      "title": "YEMEN CRISIS",
+      "category": "Long Form Video",
+      "subcategory": "Geopolitics / Documentary",
+      "type": "video",
+      "source": "YouTube",
+      "youtube_id": "eiNg6ikSyIQ",
+      "youtube_url": "https://www.youtube.com/watch?v=eiNg6ikSyIQ",
+      "youtube_embed_url": "https://www.youtube.com/embed/eiNg6ikSyIQ",
+      "local_video_path": "assets/videos/yemen_crisis.mp4",
+      "video_file_size_bytes": 25158624,
+      "thumbnail_local_path": "assets/images/video_posters/yemen_crisis_thumb.jpg",
+      "thumbnail_source_url": "https://img.youtube.com/vi/eiNg6ikSyIQ/hqdefault.jpg",
+      "description": "After the Israel-Hamas war erupted on October 7, 2023, Yemen’s Houthi rebels began targeting ships in the Red Sea to protest nations supporting Israel’s actions in Gaza. Claiming solidarity with Palestinians, the Houthis have launched drone and missile attacks on vessels linked to Israel or its allies. But beyond protest, these assaults also serve to strengthen the Houthis’ political control within Yemen after years of civil war and humanitarian crisis.",
+      "tags": [
+        "documentary",
+        "geopolitics",
+        "longform",
+        "storytelling",
+        "video editing"
+      ]
+    },
+    {
+      "id": "longform-podcast-preview",
+      "title": "PODCAST PREVIEW",
+      "category": "Long Form Video",
+      "subcategory": "Horror / Audio Experience",
+      "type": "video",
+      "source": "YouTube",
+      "youtube_id": "Mt7w4vHDDN8",
+      "youtube_url": "https://www.youtube.com/watch?v=Mt7w4vHDDN8",
+      "youtube_embed_url": "https://www.youtube.com/embed/Mt7w4vHDDN8",
+      "local_video_path": "assets/videos/podcast_preview.mp4",
+      "video_file_size_bytes": 21588036,
+      "thumbnail_local_path": "assets/images/video_posters/podcast_preview_thumb.jpg",
+      "thumbnail_source_url": "https://img.youtube.com/vi/Mt7w4vHDDN8/hqdefault.jpg",
+      "description": "Created a horror-themed podcast preview focused on immersive sound design and audio editing. Used layered ambient sounds, reverb, and tension-building transitions to craft a dark, cinematic atmosphere while maintaining clear dialogue and dynamic pacing.",
+      "tags": [
+        "horror",
+        "podcast",
+        "sound design",
+        "cinematic audio",
+        "ambiance"
+      ]
+    },
+    {
+      "id": "longform-china-population",
+      "title": "CHINA'S POPULATION DECLINE",
+      "category": "Long Form Video",
+      "subcategory": "Economic / Informative",
+      "type": "video",
+      "source": "YouTube",
+      "youtube_id": "F__RVLoM_wk",
+      "youtube_url": "https://www.youtube.com/watch?v=F__RVLoM_wk",
+      "youtube_embed_url": "https://www.youtube.com/embed/F__RVLoM_wk",
+      "local_video_path": "assets/videos/china_population.mp4",
+      "video_file_size_bytes": 18304501,
+      "thumbnail_local_path": "assets/images/video_posters/china_population_thumb.jpg",
+      "thumbnail_source_url": "https://img.youtube.com/vi/F__RVLoM_wk/hqdefault.jpg",
+      "description": "This video explores China’s population decline, its causes, and its long-term impact. I worked on the video editing and sound design to present the information clearly and engagingly.",
+      "tags": [
+        "economy",
+        "infotainment",
+        "data storytelling",
+        "video editing",
+        "sound design"
+      ]
+    },
+    {
+      "id": "longform-indian-military",
+      "title": "Future Of Indian Military: Modern Warfare And Secrets No One Talks About | Lt. Gen. Raj Shukla",
+      "category": "Long Form Video",
+      "subcategory": "Podcast / Modern Warfare Interview",
+      "type": "video",
+      "source": "YouTube",
+      "youtube_id": "wfdPeXecqN0",
+      "youtube_url": "https://www.youtube.com/watch?v=wfdPeXecqN0",
+      "youtube_embed_url": "https://www.youtube.com/embed/wfdPeXecqN0",
+      "local_video_path": "assets/videos/indian_military_podcast.mp4",
+      "video_file_size_bytes": 303943536,
+      "thumbnail_local_path": "assets/images/video_posters/indian_military_thumb.jpg",
+      "thumbnail_source_url": "https://img.youtube.com/vi/wfdPeXecqN0/hqdefault.jpg",
+      "description": "In-depth podcast interview with Lt. Gen. Raj Shukla exploring modern warfare, tactical intelligence, and modern defense infrastructure.",
+      "tags": [
+        "podcast",
+        "interview",
+        "military",
+        "longform"
+      ]
+    },
+    {
+      "id": "longform-indian-culture",
+      "title": "Why is the INDIAN CULTURE DYING? | The Free Flow Podcast",
+      "category": "Long Form Video",
+      "subcategory": "Podcast Episode",
+      "type": "video",
+      "source": "YouTube",
+      "youtube_id": "TseJYgx2RLI",
+      "youtube_url": "https://www.youtube.com/watch?v=TseJYgx2RLI",
+      "youtube_embed_url": "https://www.youtube.com/embed/TseJYgx2RLI",
+      "local_video_path": "assets/videos/indian_culture_dying_podcast.mp4",
+      "video_file_size_bytes": 66382761,
+      "thumbnail_local_path": "assets/images/video_posters/indian_culture_dying_thumb.jpg",
+      "thumbnail_source_url": "https://img.youtube.com/vi/TseJYgx2RLI/hqdefault.jpg",
+      "description": "The Free Flow Podcast episode analyzing cultural shifts, modern diaspora perceptions, and cultural preservation in modern India.",
+      "tags": [
+        "podcast",
+        "culture",
+        "india",
+        "the free flow podcast"
+      ]
+    },
+    {
+      "id": "longform-humanity-extinct",
+      "title": "Humanity will go EXTINCT in 30 years due to THIS | The Free Flow Podcast",
+      "category": "Long Form Video",
+      "subcategory": "Podcast Episode",
+      "type": "video",
+      "source": "YouTube",
+      "youtube_id": "L2S-Bb1tZGE",
+      "youtube_url": "https://www.youtube.com/watch?v=L2S-Bb1tZGE",
+      "youtube_embed_url": "https://www.youtube.com/embed/L2S-Bb1tZGE",
+      "local_video_path": "assets/videos/humanity_extinct_podcast.mp4",
+      "video_file_size_bytes": 78082130,
+      "thumbnail_local_path": "assets/images/video_posters/humanity_extinct_thumb.jpg",
+      "thumbnail_source_url": "https://img.youtube.com/vi/L2S-Bb1tZGE/hqdefault.jpg",
+      "description": "The Free Flow Podcast episode discussing environmental crises, technological risks, and demographic projections.",
+      "tags": [
+        "podcast",
+        "science",
+        "future",
+        "the free flow podcast"
+      ]
+    },
+    {
+      "id": "longform-young-india",
+      "title": "What does young India want: Money, Career, Relationship or health? | The Free Flow Podcast",
+      "category": "Long Form Video",
+      "subcategory": "Podcast Episode",
+      "type": "video",
+      "source": "YouTube",
+      "youtube_id": "fuByuRLcAUU",
+      "youtube_url": "https://www.youtube.com/watch?v=fuByuRLcAUU",
+      "youtube_embed_url": "https://www.youtube.com/embed/fuByuRLcAUU",
+      "local_video_path": "assets/videos/young_india_podcast.mp4",
+      "video_file_size_bytes": 52812878,
+      "thumbnail_local_path": "assets/images/video_posters/young_india_thumb.jpg",
+      "thumbnail_source_url": "https://img.youtube.com/vi/fuByuRLcAUU/hqdefault.jpg",
+      "description": "The Free Flow Podcast episode covering youth aspirations, careers, financial independence, and relationships in modern India.",
+      "tags": [
+        "podcast",
+        "youth",
+        "career",
+        "the free flow podcast"
+      ]
+    },
+    {
+      "id": "motion-freeflow-logo",
+      "title": "FREEFLOW LOGO",
+      "category": "Graphic Motion",
+      "subcategory": "Logo Animation",
+      "type": "video",
+      "source": "YouTube",
+      "youtube_id": "udo5bqHrBFA",
+      "youtube_url": "https://www.youtube.com/watch?v=udo5bqHrBFA",
+      "youtube_embed_url": "https://www.youtube.com/embed/udo5bqHrBFA",
+      "local_video_path": "assets/videos/freeflow_logo.mp4",
+      "video_file_size_bytes": 114780,
+      "thumbnail_local_path": "assets/images/video_posters/freeflow_logo_thumb.jpg",
+      "thumbnail_source_url": "https://img.youtube.com/vi/udo5bqHrBFA/hqdefault.jpg",
+      "description": "Fluid kinetic logo animation for Freeflow featuring smooth vector morphing, particle reveals, and seamless brand motion.",
+      "tags": [
+        "logo animation",
+        "motion graphics",
+        "branding",
+        "after effects"
+      ]
+    },
+    {
+      "id": "motion-tatva-logo",
+      "title": "TatvaLogo L60",
+      "category": "Graphic Motion",
+      "subcategory": "Logo Animation",
+      "type": "video",
+      "source": "YouTube",
+      "youtube_id": "VEBOLuqT9dw",
+      "youtube_url": "https://www.youtube.com/watch?v=VEBOLuqT9dw",
+      "youtube_embed_url": "https://www.youtube.com/embed/VEBOLuqT9dw",
+      "local_video_path": "assets/videos/tatva_logo.mp4",
+      "video_file_size_bytes": 119972,
+      "thumbnail_local_path": "assets/images/video_posters/tatva_logo_thumb.jpg",
+      "thumbnail_source_url": "https://img.youtube.com/vi/VEBOLuqT9dw/hqdefault.jpg",
+      "description": "Geometric logo sting animation for TatvaLogo highlighting precision keyframing, optical glows, and modern digital presence.",
+      "tags": [
+        "logo sting",
+        "vector animation",
+        "motion design"
+      ]
+    },
+    {
+      "id": "motion-ekam-kashi-logo",
+      "title": "EKAM KASHI LOGO",
+      "category": "Graphic Motion",
+      "subcategory": "Logo Animation",
+      "type": "video",
+      "source": "YouTube",
+      "youtube_id": "u6sg8EovWl0",
+      "youtube_url": "https://www.youtube.com/watch?v=u6sg8EovWl0",
+      "youtube_embed_url": "https://www.youtube.com/embed/u6sg8EovWl0",
+      "local_video_path": "assets/videos/ekam_kashi_logo.mp4",
+      "video_file_size_bytes": 97275,
+      "thumbnail_local_path": "assets/images/video_posters/ekam_kashi_thumb.jpg",
+      "thumbnail_source_url": "https://img.youtube.com/vi/u6sg8EovWl0/hqdefault.jpg",
+      "description": "Cultural and spiritual brand mark animation for Ekam Kashi combining elegant lines, gold luminescence, and fluid reveals.",
+      "tags": [
+        "branding",
+        "motion logo",
+        "cultural",
+        "animation"
+      ]
+    },
+    {
+      "id": "motion-salt-logo",
+      "title": "SALT LOGO",
+      "category": "Graphic Motion",
+      "subcategory": "Logo Animation",
+      "type": "video",
+      "source": "YouTube",
+      "youtube_id": "PSrHXJZ-cmQ",
+      "youtube_url": "https://www.youtube.com/watch?v=PSrHXJZ-cmQ",
+      "youtube_embed_url": "https://www.youtube.com/embed/PSrHXJZ-cmQ",
+      "local_video_path": "assets/videos/salt_logo.mp4",
+      "video_file_size_bytes": 252601,
+      "thumbnail_local_path": "assets/images/video_posters/salt_logo_thumb.jpg",
+      "thumbnail_source_url": "https://img.youtube.com/vi/PSrHXJZ-cmQ/hqdefault.jpg",
+      "description": "Minimalist corporate logo animation for SALT featuring subtle typography movement, clean shading, and punchy sound integration.",
+      "tags": [
+        "minimalist",
+        "logo reveal",
+        "after effects"
+      ]
+    },
+    {
+      "id": "motion-ezsnippet",
+      "title": "EZSNIPPET",
+      "category": "Graphic Motion",
+      "subcategory": "Social Edit / Coding",
+      "type": "video",
+      "source": "YouTube",
+      "youtube_id": "NQvUFcM3Lt4",
+      "youtube_url": "https://www.youtube.com/watch?v=NQvUFcM3Lt4",
+      "youtube_embed_url": "https://www.youtube.com/embed/NQvUFcM3Lt4",
+      "local_video_path": "assets/videos/ezsnippet.mp4",
+      "video_file_size_bytes": 4777930,
+      "thumbnail_local_path": "assets/images/video_posters/ezsnippet_thumb.jpg",
+      "thumbnail_source_url": "https://img.youtube.com/vi/NQvUFcM3Lt4/hqdefault.jpg",
+      "description": "Fast-paced tech snippet video edit created for EZSnippet with coding memes, custom animations, and energetic sound design.",
+      "tags": [
+        "tech",
+        "coding",
+        "motion design",
+        "meme edit"
+      ]
+    },
+    {
+      "id": "motion-posh-video",
+      "title": "POSH VIDEO | MOTION DESIGN",
+      "category": "Graphic Motion",
+      "subcategory": "Commercial Motion Design",
+      "type": "video",
+      "source": "YouTube",
+      "youtube_id": "Ha-5Uv7j-Bc",
+      "youtube_url": "https://www.youtube.com/watch?v=Ha-5Uv7j-Bc",
+      "youtube_embed_url": "https://www.youtube.com/embed/Ha-5Uv7j-Bc",
+      "local_video_path": "assets/videos/posh_video.mp4",
+      "video_file_size_bytes": 1030828,
+      "thumbnail_local_path": "assets/images/video_posters/posh_video_thumb.jpg",
+      "thumbnail_source_url": "https://img.youtube.com/vi/Ha-5Uv7j-Bc/hqdefault.jpg",
+      "description": "High-end commercial motion design showcase highlighting luxury aesthetics, product pacing, and sleek typographic motion.",
+      "tags": [
+        "commercial",
+        "posh",
+        "motion graphics",
+        "luxury"
+      ]
+    },
+    {
+      "id": "motion-motivational-speech",
+      "title": "MOTIVATIONAL SPEECH",
+      "category": "Graphic Motion",
+      "subcategory": "Inspirational Speech Edit",
+      "type": "video",
+      "source": "YouTube",
+      "youtube_id": "8fldOBLwzvM",
+      "youtube_url": "https://www.youtube.com/watch?v=8fldOBLwzvM",
+      "youtube_embed_url": "https://www.youtube.com/embed/8fldOBLwzvM",
+      "local_video_path": "assets/videos/motivational_speech.mp4",
+      "video_file_size_bytes": 1119837,
+      "thumbnail_local_path": "assets/images/video_posters/motivational_speech_thumb.jpg",
+      "thumbnail_source_url": "https://img.youtube.com/vi/8fldOBLwzvM/hqdefault.jpg",
+      "description": "Emotional and cinematic video edit sync to inspirational voiceover with powerful music crescendo and visual storytelling.",
+      "tags": [
+        "motivation",
+        "inspirational",
+        "cinematic",
+        "storytelling"
+      ]
+    },
+    {
+      "id": "thumbnail-club-businessman",
+      "title": "A CLUB BUSINESSMAN",
+      "category": "Graphics & Thumbnails",
+      "subcategory": "YouTube Thumbnail / Branding",
+      "type": "image",
+      "local_image_path": "assets/images/thumbnails/a_club_businessman.png",
+      "file_size_bytes": 2350390,
+      "raw_source_url": "https://static.wixstatic.com/media/c1453f_da3f15131dff484aa2f31c45aa952d0e~mv2.png",
+      "description": "Custom YouTube thumbnail design featuring high-contrast character isolation, bold typography, and visual hierarchy for A Club Businessman.",
+      "tags": [
+        "thumbnail",
+        "graphic design",
+        "youtube",
+        "branding"
+      ]
+    },
+    {
+      "id": "poster-ivo",
+      "title": "IVO",
+      "category": "Graphics & Thumbnails",
+      "subcategory": "Poster / Cover Art",
+      "type": "image",
+      "local_image_path": "assets/images/thumbnails/ivo.png",
+      "file_size_bytes": 851447,
+      "raw_source_url": "https://static.wixstatic.com/media/c1453f_637d79c96d0c4d939cce48a9bc14dffd~mv2.png",
+      "description": "Editorial poster design for IVO showcasing portrait composition, stylish color grading, and modern layout aesthetic.",
+      "tags": [
+        "poster",
+        "cover art",
+        "editorial",
+        "graphic design"
+      ]
+    },
+    {
+      "id": "thumbnail-club-country",
+      "title": "A CLUB COUNTRY",
+      "category": "Graphics & Thumbnails",
+      "subcategory": "YouTube Thumbnail / Branding",
+      "type": "image",
+      "local_image_path": "assets/images/thumbnails/a_club_country.png",
+      "file_size_bytes": 1663885,
+      "raw_source_url": "https://static.wixstatic.com/media/c1453f_38d0ea6c2f294ec6a99b65153fc3b53f~mv2.png",
+      "description": "High-impact thumbnail design for A Club Country with vibrant scene framing, dynamic elements, and visual focus.",
+      "tags": [
+        "thumbnail",
+        "branding",
+        "youtube",
+        "graphics"
+      ]
+    },
+    {
+      "id": "poster-the-exorcist",
+      "title": "The Exorcist",
+      "category": "Graphics & Thumbnails",
+      "subcategory": "Horror Poster / Cover Art",
+      "type": "image",
+      "local_image_path": "assets/images/thumbnails/the_exorcist.png",
+      "file_size_bytes": 199515,
+      "raw_source_url": "https://static.wixstatic.com/media/c1453f_70000359ec4c4800ab6eb07782c57ee5~mv2.png",
+      "description": "Dark horror movie poster concept featuring moody cinematic lighting, ominous silhouettes, and atmospheric texture design.",
+      "tags": [
+        "horror",
+        "poster",
+        "cinematic",
+        "film"
+      ]
+    },
+    {
+      "id": "banner-montage",
+      "title": "MONTAGE",
+      "category": "Graphics & Thumbnails",
+      "subcategory": "Gaming & Action Montage Banner",
+      "type": "image",
+      "local_image_path": "assets/images/thumbnails/montage.jpg",
+      "file_size_bytes": 1784566,
+      "raw_source_url": "https://static.wixstatic.com/media/c1453f_17688a97a6e245ecba1b3677de952138~mv2.jpg",
+      "description": "Action-packed gaming video banner and montage artwork with aggressive lighting effects, cinematic grading, and dynamic game assets.",
+      "tags": [
+        "gaming",
+        "montage",
+        "banner",
+        "thumbnail"
+      ]
+    },
+    {
+      "id": "thumbnail-hallow-face",
+      "title": "Hallow Face",
+      "category": "Graphics & Thumbnails",
+      "subcategory": "Visual Design / Thumbnail",
+      "type": "image",
+      "local_image_path": "assets/images/thumbnails/hallow_face.png",
+      "file_size_bytes": 2622382,
+      "raw_source_url": "https://static.wixstatic.com/media/c1453f_da15e15a08d744e39f0aeaaaeebf01f0~mv2.png",
+      "description": "Mysterious atmospheric visual design for Hallow Face with spooky ambiance and high click-through composition.",
+      "tags": [
+        "thumbnail",
+        "visual design",
+        "horror",
+        "youtube"
+      ]
+    },
+    {
+      "id": "thumbnail-zara-remake",
+      "title": "ZARA Remake",
+      "category": "Graphics & Thumbnails",
+      "subcategory": "Fashion / Commercial Thumbnail",
+      "type": "image",
+      "local_image_path": "assets/images/thumbnails/zara_remake.png",
+      "file_size_bytes": 3368800,
+      "raw_source_url": "https://static.wixstatic.com/media/c1453f_b1edd23f82c24500a8b98ea9afbeedde~mv2.png",
+      "description": "Clean fashion-forward commercial concept thumbnail re-imagining ZARA brand identity with minimalist elegance.",
+      "tags": [
+        "fashion",
+        "zara",
+        "commercial",
+        "branding"
+      ]
+    },
+    {
+      "id": "poster-fall-in-love",
+      "title": "FALL IN LOVE",
+      "category": "Graphics & Thumbnails",
+      "subcategory": "Editorial / Romantic Poster",
+      "type": "image",
+      "local_image_path": "assets/images/thumbnails/fall_in_love.png",
+      "file_size_bytes": 1871447,
+      "raw_source_url": "https://static.wixstatic.com/media/c1453f_7689c7330724471fb3996adf566b7233~mv2.png",
+      "description": "Stylized romantic poster artwork blending soft cinematic grain, vintage lighting, and contemporary typography.",
+      "tags": [
+        "editorial",
+        "poster",
+        "romantic",
+        "cover"
+      ]
+    },
+    {
+      "id": "thumbnail-art-of-whiffing-p2",
+      "title": "ART OF WHIFFING p2",
+      "category": "Graphics & Thumbnails",
+      "subcategory": "Gaming / Entertainment Thumbnail",
+      "type": "image",
+      "local_image_path": "assets/images/thumbnails/art_of_whiffing_p2.png",
+      "file_size_bytes": 971771,
+      "raw_source_url": "https://static.wixstatic.com/media/c1453f_329e8ceae24640b791bd49a4358d5df2~mv2.png",
+      "description": "Humorous competitive gaming thumbnail showcasing memorable clutch moments with bold custom lettering and face cam framing.",
+      "tags": [
+        "gaming",
+        "fps",
+        "humor",
+        "thumbnail"
+      ]
+    },
+    {
+      "id": "banner-youtuber-banner",
+      "title": "YOUTUBER BANNER",
+      "category": "Graphics & Thumbnails",
+      "subcategory": "Channel Header Art",
+      "type": "image",
+      "local_image_path": "assets/images/thumbnails/youtuber_banner.png",
+      "file_size_bytes": 1707026,
+      "raw_source_url": "https://static.wixstatic.com/media/c1453f_30750d4e2caf441fa0136f3cbcff716b~mv2.png",
+      "description": "Wide panoramic header banner designed for YouTube creators, featuring social handles, schedule cues, and branded design aesthetics.",
+      "tags": [
+        "banner",
+        "channel art",
+        "youtube",
+        "header"
+      ]
+    },
+    {
+      "id": "profile-manthan-dave",
+      "title": "Manthan Dave Profile Picture",
+      "category": "Profile & Identity",
+      "subcategory": "Avatar / Headshot",
+      "type": "image",
+      "local_image_path": "assets/images/profile/cropped_circle_image.png",
+      "file_size_bytes": 1031826,
+      "raw_source_url": "https://static.wixstatic.com/media/c1453f_a1aa52028e944aee9612e41787681584~mv2.png",
+      "description": "Circular portrait headshot of Manthan Dave used on the About page.",
+      "tags": [
+        "profile",
+        "headshot",
+        "about"
+      ]
+    },
+    {
+      "id": "skill-after-effects",
+      "title": "Adobe After Effects Badge",
+      "category": "Skills & Tools",
+      "subcategory": "Software Icon",
+      "type": "image",
+      "local_image_path": "assets/images/skills/after_effects.png",
+      "file_size_bytes": 1536,
+      "raw_source_url": "https://static.wixstatic.com/media/c1453f_a3f2b8bea50a4e46a66cf704b108808f~mv2.png",
+      "description": "Adobe After Effects icon for motion design, VFX, and animation expertise.",
+      "tags": [
+        "after effects",
+        "skill",
+        "software"
+      ]
+    },
+    {
+      "id": "skill-premiere-pro",
+      "title": "Adobe Premiere Pro Badge",
+      "category": "Skills & Tools",
+      "subcategory": "Software Icon",
+      "type": "image",
+      "local_image_path": "assets/images/skills/premiere_pro.png",
+      "file_size_bytes": 179547,
+      "raw_source_url": "https://static.wixstatic.com/media/c1453f_392091f03c924300a50b9957a06a4780~mv2.png",
+      "description": "Adobe Premiere Pro icon representing professional video editing and timeline assembly.",
+      "tags": [
+        "premiere pro",
+        "video editing",
+        "software"
+      ]
+    },
+    {
+      "id": "skill-photoshop",
+      "title": "Adobe Photoshop Badge",
+      "category": "Skills & Tools",
+      "subcategory": "Software Icon",
+      "type": "image",
+      "local_image_path": "assets/images/skills/photoshop.png",
+      "file_size_bytes": 30212,
+      "raw_source_url": "https://static.wixstatic.com/media/c1453f_bf7da6aafdab4d649832bbcf1940a485~mv2.png",
+      "description": "Adobe Photoshop icon representing graphic design, thumbnail creation, and photo retouching.",
+      "tags": [
+        "photoshop",
+        "graphic design",
+        "software"
+      ]
+    },
+    {
+      "id": "skill-figma",
+      "title": "Figma Badge",
+      "category": "Skills & Tools",
+      "subcategory": "Software Icon",
+      "type": "image",
+      "local_image_path": "assets/images/skills/figma.png",
+      "file_size_bytes": 11486,
+      "raw_source_url": "https://static.wixstatic.com/media/c1453f_d0a01cbf9b1648bbb25e9c16c0278856~mv2.png",
+      "description": "Figma icon representing UI/UX layout planning and vector component design.",
+      "tags": [
+        "figma",
+        "ui",
+        "vector",
+        "software"
+      ]
+    },
+    {
+      "id": "skill-vegas-pro",
+      "title": "Vegas Pro Badge",
+      "category": "Skills & Tools",
+      "subcategory": "Software Icon",
+      "type": "image",
+      "local_image_path": "assets/images/skills/vegas_pro.png",
+      "file_size_bytes": 11460,
+      "raw_source_url": "https://static.wixstatic.com/media/c1453f_45a491d4a27f4db98fdea4e22ae00d84~mv2.png",
+      "description": "Vegas Pro icon for multi-track editing, audio synchronization, and fast render workflows.",
+      "tags": [
+        "vegas pro",
+        "editing",
+        "software"
+      ]
+    },
+    {
+      "id": "social-whatsapp",
+      "title": "WhatsApp Icon",
+      "category": "Social Media",
+      "subcategory": "Messaging",
+      "type": "image",
+      "local_image_path": "assets/images/social/whatsapp.png",
+      "file_size_bytes": 3951,
+      "raw_source_url": "https://static.wixstatic.com/media/11062b_a193068045064f4fa21b07cd12dae779~mv2.png",
+      "description": "WhatsApp contact icon linking to wa.me/+918080112336.",
+      "tags": [
+        "whatsapp",
+        "contact",
+        "social"
+      ]
+    },
+    {
+      "id": "social-instagram",
+      "title": "Instagram Icon",
+      "category": "Social Media",
+      "subcategory": "Social Profile",
+      "type": "image",
+      "local_image_path": "assets/images/social/instagram.png",
+      "file_size_bytes": 3529,
+      "raw_source_url": "https://static.wixstatic.com/media/11062b_cef3b719166a4815b446d4dcfcb6120d~mv2.png",
+      "description": "Instagram profile icon linking to instagram.com/le_dave__.",
+      "tags": [
+        "instagram",
+        "profile",
+        "social"
+      ]
+    },
+    {
+      "id": "social-discord",
+      "title": "Discord Icon",
+      "category": "Social Media",
+      "subcategory": "Community",
+      "type": "image",
+      "local_image_path": "assets/images/social/discord.png",
+      "file_size_bytes": 2991,
+      "raw_source_url": "https://static.wixstatic.com/media/11062b_adb5b939714d4b898142c8bff0cc9346~mv2.png",
+      "description": "Discord community icon for user dave1707.",
+      "tags": [
+        "discord",
+        "community",
+        "social"
+      ]
+    }
+  ]
+}
