@@ -1,17 +1,15 @@
 import HeroScrollZoom from "@/components/HeroScrollZoom";
+import PerAppelgrenPortfolio from "@/components/portfolio/PerAppelgrenPortfolio";
 
 export default function Home() {
   return (
-    <main className="relative min-h-screen w-full bg-white selection:bg-sky-200">
-      {/* Hero Zoom Track into Letter 'G' -> Transitions to White Screen */}
+    <main className="relative min-h-screen w-full bg-white selection:bg-[#0F1118] selection:text-white">
+      {/* 1. Hero Zoom Track: Clouds + Smoky 'PROGENCY' -> Plunges inside 'G' -> Flawless White Screen */}
       <HeroScrollZoom />
 
-      {/* Solid White Canvas Section (Ready for your next instructions) */}
-      <section
-        id="next-section"
-        className="relative z-30 min-h-screen w-full bg-white flex flex-col items-center justify-center px-6 py-24 text-slate-900"
-      >
-        {/* White canvas container ready for your next components & sections */}
+      {/* 2. Per Appelgren Editorial Portfolio Experience */}
+      <section id="portfolio-experience" className="relative z-30 w-full bg-[#FAFAF8]">
+        <PerAppelgrenPortfolio />
       </section>
     </main>
   );
