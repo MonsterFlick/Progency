@@ -461,7 +461,7 @@ Set the \`cycles\` parameter to \`"ref"\` to resolve cyclical schemas with defs.
   return (0, i.jsx)("section", {
     ref: containerRef,
     "data-image-scroller-section": "true",
-    style: { position: "relative", width: "100%", height: "450vh", background: "#ffffff", color: "#fff", overflow: "clip" },
+    style: { position: "relative", width: "100%", height: "calc(2800px + 100vh)", background: "#ffffff", color: "#fff", overflow: "clip" },
     children: (0, i.jsxs)("div", {
       ref: stickyRef,
       "data-scroller-sticky": "true",

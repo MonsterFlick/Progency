@@ -4,12 +4,18 @@ import React, { useEffect, useRef, useState, useCallback } from "react";
 import CloudSky from "@/components/CloudSky";
 import SmokyText from "@/components/SmokyText";
 import LineCursor from "@/components/LineCursor";
+import { TechWorkShowcase } from "@/components/TechWorkShowcase";
 
 export default function HeroScrollZoom() {
   const trackRef = useRef<HTMLDivElement>(null);
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const zoomContainerRef = useRef<HTMLDivElement>(null);
+  const portfolioLayerRef = useRef<HTMLDivElement>(null);
+  const techLayerRef = useRef<HTMLDivElement>(null);
+
   const [progress, setProgress] = useState(0);
+  const progressRef = useRef(0);
+  progressRef.current = progress;
 
   // Hold pause state at "OUR WORK" hero
   const HOLD_DURATION_MS = 900;
@@ -17,8 +23,139 @@ export default function HeroScrollZoom() {
   const pausedUntilRef = useRef(0);
   const [isScrollPaused, setIsScrollPaused] = useState(true);
 
+  // Section 3 (Tech Work / VerticalGallery) transition state: 0 = Section 1&2, 1 = Section 3
+  const [techStage, setTechStage] = useState<
+    "hidden" | "transitioning" | "active"
+  >("hidden");
+  const techStageRef = useRef(techStage);
+  techStageRef.current = techStage;
+
+  const techCurrentRef = useRef(0);
+  const techTargetRef = useRef(0);
+  const techRafRef = useRef(0);
+  const techSnapTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const lastTechDeltaRef = useRef(0);
+
   // Exact coordinates of the letter 'G' in unscaled screen coordinates
   const [gPos, setGPos] = useState<{ x: number; y: number } | null>(null);
+
+  // Apply 60fps pixel-locked 3D depth slide transforms directly to DOM
+  const applyTechTransforms = useCallback((p: number) => {
+    const clamped = Math.max(0, Math.min(1, p));
+    if (portfolioLayerRef.current) {
+      const recedeScale = 1 - clamped * 0.06;
+      portfolioLayerRef.current.style.transform = `translate3d(0, ${(-clamped * 100).toFixed(3)}%, 0) scale(${recedeScale.toFixed(4)})`;
+    }
+    if (techLayerRef.current) {
+      techLayerRef.current.style.transform = `translate3d(0, ${((1 - clamped) * 100).toFixed(3)}%, 0)`;
+    }
+  }, []);
+
+  // RAF spring loop driving the transition between Section 2 and Section 3 (Tech Work)
+  const startTechRaf = useCallback(() => {
+    if (techRafRef.current) return;
+
+    const tick = () => {
+      techRafRef.current = 0;
+      const cur = techCurrentRef.current;
+      const target = techTargetRef.current;
+      const diff = target - cur;
+
+      let next = cur;
+      if (Math.abs(diff) < 0.002) {
+        next = target;
+      } else {
+        next = cur + diff * 0.16;
+      }
+
+      techCurrentRef.current = next;
+      applyTechTransforms(next);
+
+      if (next <= 0.002 && target <= 0.002) {
+        if (techStageRef.current !== "hidden") {
+          techStageRef.current = "hidden";
+          setTechStage("hidden");
+        }
+      } else if (next >= 0.998 && target >= 0.998) {
+        if (techStageRef.current !== "active") {
+          techStageRef.current = "active";
+          setTechStage("active");
+        }
+      } else {
+        if (techStageRef.current !== "transitioning") {
+          techStageRef.current = "transitioning";
+          setTechStage("transitioning");
+        }
+      }
+
+      if (Math.abs(target - next) >= 0.002) {
+        techRafRef.current = requestAnimationFrame(tick);
+      }
+    };
+
+    techRafRef.current = requestAnimationFrame(tick);
+  }, [applyTechTransforms]);
+
+  // Nudge the Section 2 <-> Section 3 slide transition by a wheel/touch deltaY
+  const nudgeTechTransition = useCallback(
+    (deltaY: number) => {
+      if (techSnapTimerRef.current) {
+        clearTimeout(techSnapTimerRef.current);
+        techSnapTimerRef.current = null;
+      }
+
+      const denom =
+        typeof window !== "undefined"
+          ? Math.max(420, window.innerHeight * 0.65)
+          : 600;
+      const nextTarget = Math.max(
+        0,
+        Math.min(1, techTargetRef.current + deltaY / denom)
+      );
+
+      techTargetRef.current = nextTarget;
+      lastTechDeltaRef.current = deltaY;
+
+      if (nextTarget > 0 && nextTarget < 1 && techStageRef.current !== "transitioning") {
+        techStageRef.current = "transitioning";
+        setTechStage("transitioning");
+      }
+
+      startTechRaf();
+
+      // Gentle spring snap after wheel settles
+      techSnapTimerRef.current = setTimeout(() => {
+        techSnapTimerRef.current = null;
+        const t = techTargetRef.current;
+        if (lastTechDeltaRef.current >= 0) {
+          techTargetRef.current = t >= 0.12 ? 1 : 0;
+        } else {
+          techTargetRef.current = t <= 0.88 ? 0 : 1;
+        }
+        startTechRaf();
+      }, 140);
+    },
+    [startTechRaf]
+  );
+
+  // Instant smooth glide back up to Section 2
+  const returnToWorkSection = useCallback(() => {
+    if (techSnapTimerRef.current) {
+      clearTimeout(techSnapTimerRef.current);
+      techSnapTimerRef.current = null;
+    }
+    techTargetRef.current = 0;
+    lastTechDeltaRef.current = -1;
+    startTechRaf();
+  }, [startTechRaf]);
+
+  // Cleanup RAF & timers on unmount
+  useEffect(() => {
+    return () => {
+      if (techRafRef.current) cancelAnimationFrame(techRafRef.current);
+      if (techSnapTimerRef.current) clearTimeout(techSnapTimerRef.current);
+    };
+  }, []);
 
   // Measure the unscaled screen position of the letter 'G'
   const measureG = useCallback(() => {
@@ -113,24 +250,49 @@ export default function HeroScrollZoom() {
       // Unlock after entrance animation finishes completely
       const timer = setTimeout(() => {
         setIsScrollPaused(false);
-        iframeRef.current?.contentWindow?.postMessage({ type: "UNLOCK_SCROLL" }, "*");
+        iframeRef.current?.contentWindow?.postMessage(
+          { type: "UNLOCK_SCROLL" },
+          "*"
+        );
       }, HOLD_DURATION_MS);
 
       return () => clearTimeout(timer);
+    } else if (progress < 0.85 && techStageRef.current !== "hidden") {
+      // If user drags native scrollbar back up above portfolio, cleanly reset Tech Work section
+      techTargetRef.current = 0;
+      techCurrentRef.current = 0;
+      applyTechTransforms(0);
+      techStageRef.current = "hidden";
+      setTechStage("hidden");
     } else if (progress < 0.3) {
       // Reset pause trigger when user scrolls back up into the cloud sky
       hasPausedRef.current = false;
       setIsScrollPaused(true);
     }
-  }, [progress]);
+  }, [progress, applyTechTransforms]);
 
-  // Wheel interceptor for the hold pause and seamless forwarding to the portfolio
+  // Wheel interceptor for the hold pause, Section 2 <-> Section 3 transition, and portfolio forwarding
   useEffect(() => {
     const handleWheel = (e: WheelEvent) => {
       // If within hold pause, absorb downward wheel so images don't rush out of sight
       if (Date.now() < pausedUntilRef.current && e.deltaY > 0) {
         e.preventDefault();
         e.stopPropagation();
+        return;
+      }
+
+      // While smoothly transitioning between Section 2 and Section 3 (Tech Work)
+      if (techStageRef.current === "transitioning") {
+        e.preventDefault();
+        let dy = e.deltaY;
+        if (e.deltaMode === 1) dy *= 16;
+        else if (e.deltaMode === 2) dy *= window.innerHeight;
+        nudgeTechTransition(dy);
+        return;
+      }
+
+      // While fully active inside Section 3 (Tech Work), let VerticalGallery handle wheel natively
+      if (techStageRef.current === "active") {
         return;
       }
 
@@ -150,19 +312,26 @@ export default function HeroScrollZoom() {
 
     window.addEventListener("wheel", handleWheel, { passive: false });
     return () => window.removeEventListener("wheel", handleWheel);
-  }, [progress]);
+  }, [progress, nudgeTechTransition]);
 
-  // Upward scroll bridge from the portfolio iframe
-  // Allows user to smoothly scroll back up into the G zoom and cloud sky
+  // Bidirectional scroll bridge from the portfolio iframe:
+  // - Upward at top of Section 1 -> zooms back out into G and cloud sky
+  // - Downward at bottom of Section 2 -> smoothly slides into Section 3 (Tech Work)
   useEffect(() => {
     const handleBridgeMessage = (e: MessageEvent) => {
       if (e.data?.type === "PERAPPELGREN_SCROLL_UP") {
-        window.scrollBy({ top: e.data.deltaY, behavior: "auto" });
+        if (techStageRef.current === "hidden") {
+          window.scrollBy({ top: e.data.deltaY, behavior: "auto" });
+        }
+      } else if (e.data?.type === "PERAPPELGREN_SCROLL_DOWN") {
+        if (progressRef.current >= 0.85 && e.data.deltaY > 0) {
+          nudgeTechTransition(e.data.deltaY);
+        }
       }
     };
     window.addEventListener("message", handleBridgeMessage);
     return () => window.removeEventListener("message", handleBridgeMessage);
-  }, []);
+  }, [nudgeTechTransition]);
 
   // Smooth zoom and pan directly into the letter 'G'
   // Updated directly via DOM ref to guarantee 100% identical SSR/Client markup and 0 hydration mismatch
@@ -191,7 +360,7 @@ export default function HeroScrollZoom() {
   const lightBurstOpacity = Math.max(0, Math.min(1, (progress - 0.45) / 0.32));
 
   // Pure solid white transition layer (progress 0.62 -> 0.82)
-  const solidWhiteOpacity = Math.max(0, Math.min(1, (progress - 0.62) / 0.20));
+  const solidWhiteOpacity = Math.max(0, Math.min(1, (progress - 0.62) / 0.2));
 
   // Portfolio Experience emerges directly on the white canvas of G (progress 0.68 -> 0.88)
   const portfolioOpacity = Math.max(0, Math.min(1, (progress - 0.68) / 0.18));
@@ -256,7 +425,8 @@ export default function HeroScrollZoom() {
               appearTrigger="default"
               forceVisible={progress > 0.02}
               font={{
-                fontFamily: "var(--font-geist-sans), Inter, system-ui, sans-serif",
+                fontFamily:
+                  "var(--font-geist-sans), Inter, system-ui, sans-serif",
                 fontWeight: 800,
                 fontSize: "clamp(3.5rem, 13vw, 10rem)",
                 letterSpacing: "0.16em",
@@ -302,12 +472,17 @@ export default function HeroScrollZoom() {
           }}
         />
 
-        {/* OUR WORK Portfolio Experience Blooming Directly on White of 'G' */}
+        {/* Section 1 & Section 2: OUR WORK Portfolio Experience Blooming Directly on White of 'G' */}
         <div
-          className="absolute inset-0 z-40 transition-opacity duration-300"
+          ref={portfolioLayerRef}
+          className="absolute inset-0 z-40 transition-opacity duration-300 will-change-transform"
           style={{
             opacity: portfolioOpacity,
-            pointerEvents: progress >= 0.85 && !isScrollPaused ? "auto" : "none",
+            transform: "translate3d(0, 0%, 0)",
+            pointerEvents:
+              progress >= 0.85 && !isScrollPaused && techStage === "hidden"
+                ? "auto"
+                : "none",
           }}
         >
           <iframe
@@ -318,6 +493,23 @@ export default function HeroScrollZoom() {
             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
           />
         </div>
+
+        {/* Section 3: TECH WORK (3D Dual-Device Spatial Video Showcase) */}
+        <section
+          ref={techLayerRef}
+          aria-label="Tech Work 3D Showcase"
+          className="absolute inset-0 z-50 bg-white will-change-transform"
+          style={{
+            transform: "translate3d(0, 100%, 0)",
+            pointerEvents: techStage === "active" ? "auto" : "none",
+          }}
+        >
+          <TechWorkShowcase
+            active={techStage !== "hidden"}
+            onBoundaryScrollUp={nudgeTechTransition}
+            onReturnToWork={returnToWorkSection}
+          />
+        </section>
 
         {/* Gentle Scroll Hint */}
         {hintOpacity > 0.02 && (
