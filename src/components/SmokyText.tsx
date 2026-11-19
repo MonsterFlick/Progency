@@ -166,12 +166,12 @@ function buildKF(color: string, intensity: number) {
     const rest = `0 0 1px ${color}, 0 2px 14px rgba(255, 255, 255, 0.55), 0 6px 28px rgba(180, 220, 255, 0.4)`
 
     return `
-@keyframes smt-ap-c-a{from{opacity:0;text-shadow:${init};transform:scale(${ic})}40%{text-shadow:${peak}}to{opacity:1;text-shadow:${rest};transform:none}}
-@keyframes smt-ap-c-b{from{opacity:0;text-shadow:${init};transform:scale(${ic2})}40%{text-shadow:${peak}}to{opacity:1;text-shadow:${rest};transform:none}}
-@keyframes smt-ap-bl-a{from{opacity:0;text-shadow:${init};transform:translate3d(${r(-15 * d)}rem,${r(8 * d)}rem,0) rotate(40deg) skewX(-70deg) scale(0.7)}40%{text-shadow:${peak}}to{opacity:1;text-shadow:${rest};transform:none}}
-@keyframes smt-ap-bl-b{from{opacity:0;text-shadow:${init};transform:translate3d(${r(-18 * d)}rem,${r(8 * d)}rem,0) rotate(40deg) skewX(70deg) scale(0.5)}40%{text-shadow:${peak}}to{opacity:1;text-shadow:${rest};transform:none}}
-@keyframes smt-ap-tl-a{from{opacity:0;text-shadow:${init};transform:translate3d(${r(-15 * d)}rem,${r(-8 * d)}rem,0) rotate(-40deg) skewX(70deg) scale(0.7)}40%{text-shadow:${peak}}to{opacity:1;text-shadow:${rest};transform:none}}
-@keyframes smt-ap-tl-b{from{opacity:0;text-shadow:${init};transform:translate3d(${r(-18 * d)}rem,${r(-8 * d)}rem,0) rotate(-40deg) skewX(-70deg) scale(0.5)}40%{text-shadow:${peak}}to{opacity:1;text-shadow:${rest};transform:none}}
+@keyframes smt-ap-c-a{from{opacity:0.08;text-shadow:${init};transform:scale(${ic})}40%{text-shadow:${peak}}to{opacity:1;text-shadow:${rest};transform:none}}
+@keyframes smt-ap-c-b{from{opacity:0.08;text-shadow:${init};transform:scale(${ic2})}40%{text-shadow:${peak}}to{opacity:1;text-shadow:${rest};transform:none}}
+@keyframes smt-ap-bl-a{from{opacity:0.08;text-shadow:${init};transform:translate3d(${r(-10 * d)}rem,${r(5 * d)}rem,0) rotate(24deg) skewX(-42deg) scale(0.8)}40%{text-shadow:${peak}}to{opacity:1;text-shadow:${rest};transform:none}}
+@keyframes smt-ap-bl-b{from{opacity:0.08;text-shadow:${init};transform:translate3d(${r(-12 * d)}rem,${r(5 * d)}rem,0) rotate(24deg) skewX(42deg) scale(0.68)}40%{text-shadow:${peak}}to{opacity:1;text-shadow:${rest};transform:none}}
+@keyframes smt-ap-tl-a{from{opacity:0.08;text-shadow:${init};transform:translate3d(${r(-10 * d)}rem,${r(-5 * d)}rem,0) rotate(-24deg) skewX(42deg) scale(0.8)}40%{text-shadow:${peak}}to{opacity:1;text-shadow:${rest};transform:none}}
+@keyframes smt-ap-tl-b{from{opacity:0.08;text-shadow:${init};transform:translate3d(${r(-12 * d)}rem,${r(-5 * d)}rem,0) rotate(-24deg) skewX(-42deg) scale(0.68)}40%{text-shadow:${peak}}to{opacity:1;text-shadow:${rest};transform:none}}
 `
 }
 
@@ -189,7 +189,7 @@ const COMPONENT_DEFAULTS: SmokyTextProps = {
         position: "bottom",
         distance: 20,
     },
-    appearTransition: { type: "tween", ease: "easeOut", duration: 2, delay: 0 },
+    appearTransition: { type: "tween", ease: "easeOut", duration: 1.15, delay: 0 },
     intensity: 10,
     animationMode: "singleLine",
     position: "bottomLeft",
@@ -224,7 +224,7 @@ export interface SmokyTextProps {
  * @framerIntrinsicWidth 300
  * @framerIntrinsicHeight 300
  */
-export default function SmokyText(__props: SmokyTextProps = {}) {
+const SmokyText = React.memo(function SmokyText(__props: SmokyTextProps = {}) {
     const props = { ...COMPONENT_DEFAULTS, ...__props }
     const {
         text = "SMOKY\nTEXT",
@@ -240,22 +240,14 @@ export default function SmokyText(__props: SmokyTextProps = {}) {
     } = props
     const position = (props.position ?? "bottomLeft") as Position
     const animationMode = (props.animationMode ?? "singleLine") as AnimationMode
-    const kfEl = useRef<HTMLStyleElement | null>(null)
-    useEffect(() => {
-        kfEl.current = document.createElement("style")
-        document.head.appendChild(kfEl.current)
-        return () => {
-            kfEl.current?.remove()
-            kfEl.current = null
-        }
-    }, [])
-    useEffect(() => {
-        if (kfEl.current) kfEl.current.textContent = buildKF(color, intensity)
-    }, [color, intensity])
+    const keyframesCss = useMemo(
+        () => buildKF(color, intensity),
+        [color, intensity]
+    )
 
     const { groups, totalVisible } = useMemo(() => buildGroups(text), [text])
     const appearT = useMemo(
-        () => parseT(appearTransition, { duration: 2, delay: 0 }),
+        () => parseT(appearTransition, { duration: 1.15, delay: 0 }),
         [JSON.stringify(appearTransition)]
     )
 
@@ -295,12 +287,13 @@ export default function SmokyText(__props: SmokyTextProps = {}) {
     }, [groups, animationMode])
 
     useEffect(() => {
+        if (animationMode !== "multiLine") return
         measureVL()
         if (!containerRef.current) return
         const ro = new ResizeObserver(measureVL)
         ro.observe(containerRef.current)
         return () => ro.disconnect()
-    }, [measureVL])
+    }, [measureVL, animationMode])
 
     const maxRaw = useMemo(() => {
         let m = 0
@@ -319,7 +312,9 @@ export default function SmokyText(__props: SmokyTextProps = {}) {
         return m
     }, [groups, totalVisible, position, animationMode, vli])
 
-    const [phase, setPhase] = useState<Phase>("hidden")
+    const [phase, setPhase] = useState<Phase>(
+        appearTrigger === "default" ? "appearing" : "hidden"
+    )
     const tRef = useRef<ReturnType<typeof setTimeout>[]>([])
     const clear = () => {
         tRef.current.forEach(clearTimeout)
@@ -334,18 +329,12 @@ export default function SmokyText(__props: SmokyTextProps = {}) {
     const scrollPos = (scrollConfig?.position ?? "bottom") as "top" | "bottom"
     const scrollDist = Math.max(0, Math.min(100, scrollConfig?.distance ?? 20))
 
-    // Run the smoke-in once: hidden → appearing → hold on visible.
+    // Run the smoke-in immediately: appearing -> hold on visible.
     const runAppear = useCallback(() => {
         clear()
         const ap = apRef.current
-        setPhase("hidden")
-        later(
-            () => {
-                setPhase("appearing")
-                later(() => setPhase("visible"), ap.duration * 1000 + 200)
-            },
-            Math.max(ap.delay * 1000, 80)
-        )
+        setPhase("appearing")
+        later(() => setPhase("visible"), ap.duration * 1000 + 150)
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [])
 
@@ -439,9 +428,11 @@ export default function SmokyText(__props: SmokyTextProps = {}) {
                 ...style,
             }}
         >
-            <div
+            <style dangerouslySetInnerHTML={{ __html: keyframesCss }} />
+            <h1
                 style={{
                     ...fontAny,
+                    margin: 0,
                     color: "transparent",
                     backfaceVisibility: "hidden",
                     userSelect: "none",
@@ -567,7 +558,9 @@ export default function SmokyText(__props: SmokyTextProps = {}) {
                         </span>
                     )
                 })}
-            </div>
+            </h1>
         </div>
     )
-}
+})
+
+export default SmokyText

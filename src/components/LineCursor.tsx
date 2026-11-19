@@ -3,7 +3,7 @@
 
 "use client";
 
-import { useEffect, useRef, type CSSProperties } from "react";
+import React, { useEffect, useRef, type CSSProperties } from "react";
 
 const DEFAULTS = {
     colors: ["#FFFFFF", "#7DD3FC", "#BAE6FD", "#38BDF8"],
@@ -234,11 +234,12 @@ export interface LineCursorProps {
     labelText?: string;
     labelColor?: string;
     labelFont?: CSSProperties;
+    paused?: boolean;
     style?: CSSProperties;
     className?: string;
 }
 
-export default function LineCursor(props: LineCursorProps) {
+const LineCursor = React.memo(function LineCursor(props: LineCursorProps) {
     const {
         colors = DEFAULTS.colors,
         colorShift = DEFAULTS.colorShift,
@@ -250,14 +251,30 @@ export default function LineCursor(props: LineCursorProps) {
         labelText = DEFAULTS.labelText,
         labelColor = DEFAULTS.labelColor,
         labelFont = DEFAULTS.labelFont,
+        paused = false,
         style,
         className,
     } = props;
 
     const canvasRef = useRef<HTMLCanvasElement | null>(null);
     const frameRef = useRef<HTMLDivElement | null>(null);
+    const pausedRef = useRef(paused);
+    pausedRef.current = paused;
+    const wakeRef = useRef<(() => void) | null>(null);
 
     useEffect(() => {
+        if (!paused) wakeRef.current?.();
+    }, [paused]);
+
+    useEffect(() => {
+        // Skip ribbon cursor completely on touch-only mobile devices
+        if (
+            typeof window !== "undefined" &&
+            window.matchMedia &&
+            !window.matchMedia("(pointer: fine)").matches
+        ) {
+            return;
+        }
         const canvas = canvasRef.current;
         const frame = frameRef.current;
         if (!canvas || !frame) return;
@@ -279,6 +296,7 @@ export default function LineCursor(props: LineCursorProps) {
         let running = true;
         let rafId = 0;
         let started = false;
+        let cachedRect = { left: 0, top: 0, width: 1, height: 1, cw: 1, ch: 1 };
 
         const target = { x: 0, y: 0 };
 
@@ -306,11 +324,23 @@ export default function LineCursor(props: LineCursorProps) {
 
         function resize() {
             if (!canvas || !frame) return;
-            canvas.width = Math.max(1, Math.round(frame.clientWidth));
-            canvas.height = Math.max(1, Math.round(frame.clientHeight));
+            const rect = frame.getBoundingClientRect();
+            const cw = Math.max(1, Math.round(frame.clientWidth));
+            const ch = Math.max(1, Math.round(frame.clientHeight));
+            cachedRect = {
+                left: rect.left,
+                top: rect.top,
+                width: rect.width || cw,
+                height: rect.height || ch,
+                cw,
+                ch,
+            };
+            canvas.width = cw;
+            canvas.height = ch;
         }
 
         function updatePosition(e: MouseEvent | TouchEvent) {
+            if (pausedRef.current) return;
             let clientX: number, clientY: number;
             if ("touches" in e && e.touches.length > 0) {
                 clientX = e.touches[0].clientX;
@@ -319,11 +349,10 @@ export default function LineCursor(props: LineCursorProps) {
                 clientX = (e as MouseEvent).clientX;
                 clientY = (e as MouseEvent).clientY;
             }
-            const rect = frame!.getBoundingClientRect();
-            const sx = rect.width > 0 ? frame!.clientWidth / rect.width : 1;
-            const sy = rect.height > 0 ? frame!.clientHeight / rect.height : 1;
-            target.x = (clientX - rect.left) * sx;
-            target.y = (clientY - rect.top) * sy;
+            const sx = cachedRect.width > 0 ? cachedRect.cw / cachedRect.width : 1;
+            const sy = cachedRect.height > 0 ? cachedRect.ch / cachedRect.height : 1;
+            target.x = (clientX - cachedRect.left) * sx;
+            target.y = (clientY - cachedRect.top) * sy;
         }
 
         function onFirstMove(e: MouseEvent | TouchEvent) {
@@ -331,16 +360,8 @@ export default function LineCursor(props: LineCursorProps) {
                 "mousemove",
                 onFirstMove as EventListener
             );
-            moveTarget.removeEventListener(
-                "touchstart",
-                onFirstMove as EventListener
-            );
             moveTarget.addEventListener(
                 "mousemove",
-                updatePosition as EventListener
-            );
-            moveTarget.addEventListener(
-                "touchmove",
                 updatePosition as EventListener,
                 { passive: true }
             );
@@ -351,7 +372,8 @@ export default function LineCursor(props: LineCursorProps) {
         }
 
         function loop() {
-            if (!running || !ctx || !canvas) return;
+            rafId = 0;
+            if (!running || pausedRef.current || !ctx || !canvas) return;
             ctx.globalCompositeOperation = "source-over";
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             ctx.globalCompositeOperation = "lighter";
@@ -369,25 +391,30 @@ export default function LineCursor(props: LineCursorProps) {
             rafId = window.requestAnimationFrame(loop);
         }
 
+        wakeRef.current = () => {
+            if (running && started && !pausedRef.current && !rafId) {
+                loop();
+            }
+        };
+
         function handleFocus() {
             if (!running) {
                 running = true;
-                if (started) loop();
+                if (started && !pausedRef.current && !rafId) loop();
             }
         }
         function handleBlur() {
             running = false;
+            if (rafId) {
+                window.cancelAnimationFrame(rafId);
+                rafId = 0;
+            }
         }
 
         const moveTarget: EventTarget = document;
-        moveTarget.addEventListener("mousemove", onFirstMove as EventListener);
-        moveTarget.addEventListener(
-            "touchstart",
-            onFirstMove as EventListener,
-            {
-                passive: true,
-            }
-        );
+        moveTarget.addEventListener("mousemove", onFirstMove as EventListener, {
+            passive: true,
+        });
 
         let ro: ResizeObserver | null = null;
         if (typeof ResizeObserver !== "undefined") {
@@ -400,22 +427,15 @@ export default function LineCursor(props: LineCursorProps) {
         resize();
 
         return () => {
+            wakeRef.current = null;
             running = false;
-            window.cancelAnimationFrame(rafId);
+            if (rafId) window.cancelAnimationFrame(rafId);
             moveTarget.removeEventListener(
                 "mousemove",
                 onFirstMove as EventListener
             );
             moveTarget.removeEventListener(
-                "touchstart",
-                onFirstMove as EventListener
-            );
-            moveTarget.removeEventListener(
                 "mousemove",
-                updatePosition as EventListener
-            );
-            moveTarget.removeEventListener(
-                "touchmove",
                 updatePosition as EventListener
             );
             ro?.disconnect();
@@ -474,6 +494,8 @@ export default function LineCursor(props: LineCursorProps) {
             />
         </div>
     );
-}
+});
 
 LineCursor.displayName = "Line Cursor";
+
+export default LineCursor;

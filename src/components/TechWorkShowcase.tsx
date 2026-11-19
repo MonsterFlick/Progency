@@ -1,83 +1,66 @@
 "use client";
 
 import React, { useCallback, useEffect, useRef, useState } from "react";
-import { createPortal } from "react-dom";
+import { AnimatePresence, motion } from "framer-motion";
 import styles from "./TechWorkShowcase.module.css";
 
 export interface TechProject {
   id: string;
-  indexLabel: string;
-  name: string;
-  domain: string;
+  index: string;
+  shortName: string;
+  title: string;
   category: string;
-  tagline: string;
-  tags: string[];
+  info: string;
+  tech: string[];
   accent: string;
-  auraRgb: string;
+  glow: string;
   desktopVideo: string;
   mobileVideo: string;
 }
 
-export const TECH_PROJECTS: TechProject[] = [
+const TECH_PROJECTS: TechProject[] = [
   {
     id: "alphatech",
-    indexLabel: "01",
-    name: "AlphaTech",
-    domain: "alphatechnutrition.com",
+    index: "01",
+    shortName: "AlphaTech",
+    title: "AlphaTech Nutrition",
     category: "E-Commerce Platform",
-    tagline:
-      "High-voltage sports nutrition storefront featuring interactive product showcases, distributor portal, and instant WhatsApp checkout.",
-    tags: ["Next.js", "Storefront", "Responsive UI"],
-    accent: "#6D28D9",
-    auraRgb: "124, 58, 237",
+    info: "A high-converting sports nutrition storefront built for AlphaTech Nutrition. Features a dynamic hero showcase, full supplement catalog with flavor and size filters, a dedicated distributor onboarding portal, and one-tap WhatsApp checkout engineered for fast desktop and mobile conversions.",
+    tech: ["Next.js", "TypeScript", "Tailwind CSS", "Framer Motion", "WhatsApp API"],
+    accent: "#A855F7",
+    glow: "radial-gradient(ellipse 65% 55% at 50% 50%, rgba(168, 85, 247, 0.24) 0%, rgba(15, 15, 22, 0) 75%)",
     desktopVideo: "/media/tech-showcase/alphatech_landscape_1920x1080.mp4",
     mobileVideo: "/media/tech-showcase/alphatech_portrait_1080x1920.mp4",
   },
   {
     id: "fertisure",
-    indexLabel: "02",
-    name: "FertiSure",
-    domain: "fertisure.in",
+    index: "02",
+    shortName: "FertiSure",
+    title: "FertiSure by Hemant Surgical",
     category: "MedTech Platform",
-    tagline:
-      "Next-generation IVF and medical equipment web platform engineered for Hemant Surgical Industries Limited.",
-    tags: ["Web App", "Motion System", "MedTech"],
-    accent: "#0284C7",
-    auraRgb: "14, 165, 233",
+    info: "A precision medical technology web platform engineered for Hemant Surgical Industries Limited to present next-generation IVF and embryology lab systems across 30+ countries. Designed with fluid catalog exploration, clinical credibility metrics, and instant quote request workflows.",
+    tech: ["Next.js", "React", "TypeScript", "Motion UI", "Custom CMS"],
+    accent: "#38BDF8",
+    glow: "radial-gradient(ellipse 65% 55% at 50% 50%, rgba(56, 189, 248, 0.24) 0%, rgba(15, 15, 22, 0) 75%)",
     desktopVideo: "/media/tech-showcase/fertisure_landscape_1920x1080.mp4",
     mobileVideo: "/media/tech-showcase/fertisure_portrait_1080x1920.mp4",
   },
   {
     id: "nonudes",
-    indexLabel: "03",
-    name: "NoNudes",
-    domain: "nonudes.in",
+    index: "03",
+    shortName: "NoNudes",
+    title: "NoNudes Streetwear",
     category: "Streetwear Flagship",
-    tagline:
-      "Dark-mode luxury streetwear experience built with split-flap brand reveals, bold editorial typography, and fluid micro-interactions.",
-    tags: ["E-Commerce", "Kinetic UI", "Brand Site"],
-    accent: "#B91C1C",
-    auraRgb: "220, 38, 38",
+    info: "An unapologetic dark-mode streetwear flagship built around bold editorial attitude. Combines a signature split-flap brand intro, kinetic oversized typography, and a frictionless obsidian shopping experience that puts every capsule drop front and center.",
+    tech: ["Next.js", "TypeScript", "Tailwind CSS", "Kinetic Motion", "Storefront"],
+    accent: "#EF4444",
+    glow: "radial-gradient(ellipse 65% 55% at 50% 50%, rgba(239, 68, 68, 0.22) 0%, rgba(15, 15, 22, 0) 75%)",
     desktopVideo: "/media/tech-showcase/nonudes_landscape_1920x1080.mp4",
     mobileVideo: "/media/tech-showcase/nonudes_portrait_1080x1920.mp4",
   },
 ];
 
-type ViewMode = "dual" | "desktop" | "mobile";
-
-interface TechWorkShowcaseProps {
-  active?: boolean;
-  onBoundaryScrollUp?: (deltaY: number) => void;
-  onReturnToWork?: () => void;
-}
-
-interface SlideRefs {
-  desktopRig: HTMLDivElement | null;
-  mobileRig: HTMLDivElement | null;
-  desktopVideo: HTMLVideoElement | null;
-  mobileVideo: HTMLVideoElement | null;
-  watermark: HTMLDivElement | null;
-}
+type VideoAspect = "desktop" | "mobile";
 
 function clamp(v: number, min: number, max: number) {
   return v < min ? min : v > max ? max : v;
@@ -87,190 +70,117 @@ function lerp(a: number, b: number, t: number) {
   return a + (b - a) * t;
 }
 
-export function TechWorkShowcase({
-  active = true,
-  onBoundaryScrollUp,
-  onReturnToWork,
-}: TechWorkShowcaseProps) {
+export function TechWorkShowcase() {
   const count = TECH_PROJECTS.length;
-  const sectionRef = useRef<HTMLDivElement>(null);
-  const progressThumbRef = useRef<HTMLDivElement>(null);
+  const trackRef = useRef<HTMLElement>(null);
+  const slideRefs = useRef<Array<HTMLDivElement | null>>([]);
+  const videoRefs = useRef<Array<HTMLVideoElement | null>>([]);
+  const rimRefs = useRef<Array<HTMLDivElement | null>>([]);
+  const scrollCaptionRef = useRef<HTMLDivElement>(null);
 
   const [activeIdx, setActiveIdx] = useState(0);
-  const [viewMode, setViewMode] = useState<ViewMode>("dual");
-  const [modal, setModal] = useState<{
-    index: number;
-    device: "desktop" | "mobile";
-  } | null>(null);
-  const [mounted, setMounted] = useState(false);
+  const [infoOpen, setInfoOpen] = useState(false);
+  const [nearView, setNearView] = useState(false);
+  const [isMobileViewport, setIsMobileViewport] = useState(
+    () => typeof window !== "undefined" && window.innerWidth < 768
+  );
+  const [aspect, setAspect] = useState<VideoAspect>(() =>
+    typeof window !== "undefined" && window.innerWidth < 768
+      ? "mobile"
+      : "desktop"
+  );
 
-  const activeRef = useRef(active);
-  activeRef.current = active;
-
-  const viewModeRef = useRef(viewMode);
-  viewModeRef.current = viewMode;
-
-  const modalRef = useRef(modal);
-  modalRef.current = modal;
+  const nearViewRef = useRef(nearView);
+  nearViewRef.current = nearView;
 
   const activeIdxRef = useRef(activeIdx);
   activeIdxRef.current = activeIdx;
 
-  const onBoundaryScrollUpRef = useRef(onBoundaryScrollUp);
-  onBoundaryScrollUpRef.current = onBoundaryScrollUp;
-
-  const slideRefs = useRef<Array<SlideRefs>>(
-    TECH_PROJECTS.map(() => ({
-      desktopRig: null,
-      mobileRig: null,
-      desktopVideo: null,
-      mobileVideo: null,
-      watermark: null,
-    }))
-  );
-
-  // Physics engine state (runs purely in RAF, zero React re-renders per frame)
-  const engineRef = useRef({
+  // Imperative 60fps 3D Pull-Back & Horizontal Filmstrip Engine driven by native window.scrollY
+  const engRef = useRef({
     pos: 0,
     target: 0,
     vel: 0,
-    scrollPull: 0,
-    mouseX: 0,
-    mouseY: 0,
-    targetMouseX: 0,
-    targetMouseY: 0,
-    lastWheelTime: -1e9,
+    pull: 0,
+    lastScrollTime: -1e9,
     lastTime: 0,
     rafId: 0,
-    touchY: null as number | null,
+    inViewport: false,
   });
 
   useEffect(() => {
-    setMounted(true);
+    const checkViewport = () => {
+      const mobile = window.innerWidth < 768;
+      setIsMobileViewport(mobile);
+      if (mobile) setAspect("mobile");
+    };
+    checkViewport();
+    window.addEventListener("resize", checkViewport, { passive: true });
+    return () => window.removeEventListener("resize", checkViewport);
   }, []);
 
-  // Paint all 3D device layers directly to DOM at 60fps
+  // Paint 100% Fullscreen <-> 3D Pulled-Back Horizontal Parallax Filmstrip directly to DOM
   const paint = useCallback(() => {
-    const eng = engineRef.current;
-    const mode = viewModeRef.current;
-    const isLive = activeRef.current && !modalRef.current;
-    const pos = eng.pos;
-    const pull = eng.scrollPull;
-    const mx = eng.mouseX;
-    const my = eng.mouseY;
-    const velTilt = clamp(eng.vel * 3.6, -10, 10);
+    const eng = engRef.current;
+    const pos = clamp(eng.pos, 0, count - 1);
+    const pull = clamp(eng.pull, 0, 1);
+    const velYaw = clamp(eng.vel * 5.2, -10, 10);
+    const isLive = eng.inViewport;
+
+    const spacingVw = lerp(102, 85, pull);
+    const cardRadius = pull * 26;
 
     for (let i = 0; i < count; i++) {
-      const refs = slideRefs.current[i];
-      if (!refs) continue;
+      const slide = slideRefs.current[i];
+      const video = videoRefs.current[i];
+      const rim = rimRefs.current[i];
+      if (!slide) continue;
 
-      const rel = clamp(i - pos, -2, 2);
+      const rel = i - pos;
       const absRel = Math.abs(rel);
-      const focusW = clamp(1 - absRel, 0, 1);
-      const smoothW = focusW * focusW * (3 - 2 * focusW);
 
-      // 1. Slow background watermark numeral (0.35x parallax layer)
-      if (refs.watermark) {
-        const wmY = rel * 32;
-        const wmScale = lerp(0.84, 1.0, smoothW) * (1 - pull * 0.06);
-        refs.watermark.style.transform = `translate3d(${(-mx * 16).toFixed(1)}px, ${wmY.toFixed(2)}vh, 0) scale(${wmScale.toFixed(4)})`;
-        refs.watermark.style.opacity = clamp(smoothW * 1.15 - pull * 0.25, 0, 1).toFixed(3);
-      }
+      const xVw = rel * spacingVw;
+      const zPx = -Math.min(absRel, 1.6) * 190 - pull * 135;
+      const baseScale = lerp(1, 0.81, pull);
+      const depthScale = 1 - Math.min(absRel, 1.3) * 0.09;
+      const finalScale = baseScale * depthScale;
+      const rotY = clamp(-rel * 14 - velYaw, -24, 24);
+      const opacity = clamp(1 - Math.max(0, absRel - 0.12) * 0.65, 0, 1);
 
-      // 2. Desktop Studio Display (Midground 3D layer — shrinks slightly when scrolling, then glides with 3D parallax)
-      if (refs.desktopRig) {
-        const showDesktop = mode === "dual" || mode === "desktop";
-        if (!showDesktop) {
-          refs.desktopRig.style.opacity = "0";
-          refs.desktopRig.style.pointerEvents = "none";
-          refs.desktopRig.style.transform =
-            "translate3d(0, 0, -320px) scale(0.72)";
-        } else {
-          // Shift slightly left in dual mode so floating phone sits cleanly on bottom-right
-          const baseShiftX = mode === "dual" ? -5.5 : 0;
-          const deskY = rel * 78; // vh
-          const deskZ = -Math.pow(Math.min(absRel, 1.6), 1.15) * 260 - pull * 135;
-          const deskScale =
-            lerp(0.74, 1.0, smoothW) * (1 - pull * 0.13);
-          const deskRotX = clamp(-rel * 19 - velTilt - my * 4.5, -32, 32);
-          const deskRotY = clamp(
-            (mode === "dual" ? 3.5 : 0) + mx * 6.5,
-            -12,
-            14
-          );
-          const deskOpacity = clamp(1 - absRel * 0.85, 0, 1);
+      slide.style.transform = `translate3d(${xVw.toFixed(3)}vw, 0, ${zPx.toFixed(1)}px) rotateY(${rotY.toFixed(2)}deg) scale(${finalScale.toFixed(4)})`;
+      slide.style.borderRadius = `${cardRadius.toFixed(1)}px`;
+      slide.style.opacity = opacity.toFixed(3);
+      slide.style.zIndex = String(10 - Math.round(absRel * 3));
+      slide.style.pointerEvents = absRel < 0.5 ? "auto" : "none";
 
-          refs.desktopRig.style.transform = `translate3d(calc(${baseShiftX}% + ${(mx * 10).toFixed(1)}px), calc(${deskY.toFixed(2)}vh + ${(my * 7).toFixed(1)}px), ${deskZ.toFixed(1)}px) rotateX(${deskRotX.toFixed(2)}deg) rotateY(${deskRotY.toFixed(2)}deg) scale(${deskScale.toFixed(4)})`;
-          refs.desktopRig.style.opacity = deskOpacity.toFixed(3);
-          refs.desktopRig.style.zIndex = String(10 + Math.round(smoothW * 10));
-          refs.desktopRig.style.pointerEvents =
-            smoothW > 0.65 && isLive ? "auto" : "none";
+      if (video) {
+        const innerShiftX = clamp(-rel * 9 * pull, -12, 12);
+        const innerScale = 1 + pull * 0.08 + Math.min(absRel, 1) * 0.04;
+        video.style.transform = `translate3d(${innerShiftX.toFixed(2)}%, 0, 0) scale(${innerScale.toFixed(4)})`;
+
+        const shouldPlay = isLive && absRel < 0.95;
+        if (shouldPlay && video.paused) {
+          video.play().catch(() => {});
+        } else if (!shouldPlay && !video.paused) {
+          video.pause();
         }
       }
 
-      // 3. Floating Foreground iPhone Frame (1.42x vertical parallax + deeper forward Z-plane!)
-      if (refs.mobileRig) {
-        const showMobile = mode === "dual" || mode === "mobile";
-        if (!showMobile) {
-          refs.mobileRig.style.opacity = "0";
-          refs.mobileRig.style.pointerEvents = "none";
-          refs.mobileRig.style.transform =
-            "translate3d(60px, 0, -240px) scale(0.7)";
-        } else {
-          const mobY = rel * (mode === "dual" ? 112 : 84); // Faster foreground parallax in dual mode!
-          const mobZ =
-            (mode === "dual" ? 95 : 20) -
-            Math.pow(Math.min(absRel, 1.6), 1.15) * 210 -
-            pull * 75;
-          const mobScale =
-            lerp(0.76, 1.0, smoothW) * (1 - pull * 0.09);
-          const mobRotX = clamp(-rel * 24 - velTilt * 1.2 - my * 6.5, -36, 36);
-          const mobRotY = clamp(
-            (mode === "dual" ? -8 : 0) + mx * 9.5,
-            -18,
-            14
-          );
-          const mobOpacity = clamp(1 - absRel * 0.92, 0, 1);
-
-          refs.mobileRig.style.transform = `translate3d(${(mx * 22).toFixed(1)}px, calc(${mobY.toFixed(2)}vh + ${(my * 14).toFixed(1)}px), ${mobZ.toFixed(1)}px) rotateX(${mobRotX.toFixed(2)}deg) rotateY(${mobRotY.toFixed(2)}deg) scale(${mobScale.toFixed(4)})`;
-          refs.mobileRig.style.opacity = mobOpacity.toFixed(3);
-          refs.mobileRig.style.zIndex = String(25 + Math.round(smoothW * 10));
-          refs.mobileRig.style.pointerEvents =
-            smoothW > 0.65 && isLive ? "auto" : "none";
-        }
-      }
-
-      // 4. Sync video playback cleanly (play when focused & section active, pause otherwise)
-      const shouldPlayDesk =
-        isLive && absRel < 0.78 && (mode === "dual" || mode === "desktop");
-      if (refs.desktopVideo) {
-        if (shouldPlayDesk && refs.desktopVideo.paused) {
-          refs.desktopVideo.play().catch(() => {});
-        } else if (!shouldPlayDesk && !refs.desktopVideo.paused) {
-          refs.desktopVideo.pause();
-        }
-      }
-
-      const shouldPlayMob =
-        isLive && absRel < 0.78 && (mode === "dual" || mode === "mobile");
-      if (refs.mobileVideo) {
-        if (shouldPlayMob && refs.mobileVideo.paused) {
-          refs.mobileVideo.play().catch(() => {});
-        } else if (!shouldPlayMob && !refs.mobileVideo.paused) {
-          refs.mobileVideo.pause();
-        }
+      if (rim) {
+        rim.style.opacity = (pull * 0.9).toFixed(3);
       }
     }
 
-    // Update bottom scroll bar thumb
-    if (progressThumbRef.current) {
-      const pct = count > 1 ? pos / (count - 1) : 0;
-      progressThumbRef.current.style.width = `${(33 + pct * 67).toFixed(1)}%`;
+    if (scrollCaptionRef.current) {
+      const captionAlpha = clamp((pull - 0.18) / 0.55, 0, 1);
+      const captionY = lerp(12, 0, captionAlpha);
+      scrollCaptionRef.current.style.opacity = captionAlpha.toFixed(3);
+      scrollCaptionRef.current.style.transform = `translate3d(-50%, ${captionY.toFixed(1)}px, 0)`;
     }
   }, [count]);
 
   const wake = useCallback(() => {
-    const eng = engineRef.current;
+    const eng = engRef.current;
     if (eng.rafId) return;
 
     eng.lastTime = performance.now();
@@ -280,38 +190,30 @@ export function TechWorkShowcase({
       const dt = clamp((now - eng.lastTime) / 1000, 0, 1 / 30);
       eng.lastTime = now;
 
-      // Snap target to nearest integer project shortly after wheel settles
-      if (now - eng.lastWheelTime > 155) {
-        eng.target = clamp(Math.round(eng.target), 0, count - 1);
-      }
-
-      // Critically-damped spring for smooth project scroll
-      const k = 128;
-      const d = 2 * Math.sqrt(k) * 0.92;
+      // Critically-damped spring tracking native scroll target
+      const k = 125;
+      const d = 2 * Math.sqrt(k) * 0.94;
       eng.vel += (k * (eng.target - eng.pos) - d * eng.vel) * dt;
       eng.pos += eng.vel * dt;
 
       // Asymmetric 3D pull-back envelope:
-      // Snaps up fast on scroll start (video shrinks back into 3D space),
-      // eases back to 0 gracefully once next project locks in!
-      const wheelPulse = now - eng.lastWheelTime < 175 ? 0.65 : 0;
+      // Pulls fullscreen video back into rounded 3D card while scrolling between slides,
+      // then blooms smoothly back to 100% edge-to-edge fullscreen when resting on a project!
+      const distToInteger = Math.abs(eng.pos - Math.round(eng.pos));
+      const scrollPulse =
+        now - eng.lastScrollTime < 150 && Math.abs(eng.vel) > 0.08 ? 0.68 : 0;
       const rawPull = clamp(
         Math.max(
-          wheelPulse,
-          Math.abs(eng.vel) * 0.34 + Math.abs(eng.target - eng.pos) * 0.95
+          scrollPulse,
+          Math.abs(eng.vel) * 0.36 + distToInteger * 1.45
         ),
         0,
         1
       );
-      const pullRate = rawPull > eng.scrollPull ? 16 : 5.6;
-      eng.scrollPull = lerp(eng.scrollPull, rawPull, clamp(dt * pullRate, 0, 1));
-      if (eng.scrollPull < 0.002 && rawPull === 0) eng.scrollPull = 0;
+      const pullRate = rawPull > eng.pull ? 15 : 5.2;
+      eng.pull = lerp(eng.pull, rawPull, clamp(dt * pullRate, 0, 1));
+      if (eng.pull < 0.002 && rawPull === 0) eng.pull = 0;
 
-      // Smooth pointer 3D parallax
-      eng.mouseX = lerp(eng.mouseX, eng.targetMouseX, clamp(dt * 7.5, 0, 1));
-      eng.mouseY = lerp(eng.mouseY, eng.targetMouseY, clamp(dt * 7.5, 0, 1));
-
-      // Update React active index only when crossing midpoint
       const rounded = clamp(Math.round(eng.pos), 0, count - 1);
       if (rounded !== activeIdxRef.current) {
         activeIdxRef.current = rounded;
@@ -322,18 +224,14 @@ export function TechWorkShowcase({
 
       const settled =
         Math.abs(eng.target - eng.pos) < 0.0008 &&
-        Math.abs(eng.vel) < 0.003 &&
-        eng.scrollPull < 0.004 &&
-        Math.abs(eng.targetMouseX - eng.mouseX) < 0.003 &&
-        Math.abs(eng.targetMouseY - eng.mouseY) < 0.003 &&
-        now - eng.lastWheelTime > 190;
+        Math.abs(eng.vel) < 0.0025 &&
+        eng.pull < 0.004 &&
+        now - eng.lastScrollTime > 180;
 
       if (settled) {
         eng.pos = eng.target;
         eng.vel = 0;
-        eng.scrollPull = 0;
-        eng.mouseX = eng.targetMouseX;
-        eng.mouseY = eng.targetMouseY;
+        eng.pull = 0;
         paint();
       } else {
         eng.rafId = requestAnimationFrame(tick);
@@ -343,504 +241,372 @@ export function TechWorkShowcase({
     eng.rafId = requestAnimationFrame(tick);
   }, [count, paint]);
 
-  // Repaint & play/pause cleanly whenever active, viewMode, or modal changes
+  // Passive native window scroll listener -> maps Section 3 runway cleanly to 0..count-1
   useEffect(() => {
-    paint();
-    if (active) {
-      wake();
-    }
-  }, [active, viewMode, modal, paint, wake]);
+    let scrollRaf = 0;
 
-  // Cleanup RAF on unmount
-  useEffect(() => {
-    return () => {
-      if (engineRef.current.rafId) {
-        cancelAnimationFrame(engineRef.current.rafId);
-      }
-    };
-  }, []);
+    const syncScroll = () => {
+      scrollRaf = 0;
+      const el = trackRef.current;
+      if (!el) return;
 
-  // Wheel & Touch handlers on the section stage
-  useEffect(() => {
-    const el = sectionRef.current;
-    if (!el) return;
+      const rect = el.getBoundingClientRect();
+      const vh = window.innerHeight || 900;
+      const isNear = rect.top < vh * 1.4 && rect.bottom > -vh * 0.4;
+      const inVp = rect.top < vh * 0.85 && rect.bottom > vh * 0.15;
 
-    const handleWheel = (e: WheelEvent) => {
-      if (!activeRef.current || modalRef.current) return;
-
-      let deltaY = e.deltaY;
-      if (e.deltaMode === 1) deltaY *= 16;
-      else if (e.deltaMode === 2) deltaY *= el.clientHeight || 700;
-
-      if (Math.abs(e.deltaX) > Math.abs(deltaY)) return;
-
-      const eng = engineRef.current;
-
-      // At project 01 and scrolling UP -> seamlessly hand back to Section 2!
-      if (eng.target <= 0.02 && eng.pos <= 0.08 && deltaY < 0) {
-        if (onBoundaryScrollUpRef.current) {
-          e.preventDefault();
-          e.stopPropagation();
-          onBoundaryScrollUpRef.current(deltaY);
-        }
-        return;
+      if (isNear !== nearViewRef.current) {
+        nearViewRef.current = isNear;
+        setNearView(isNear);
       }
 
-      e.preventDefault();
-      e.stopPropagation();
-      const nextTarget = clamp(eng.target + deltaY * 0.0021, 0, count - 1);
-      eng.target = nextTarget;
-      eng.lastWheelTime = performance.now();
-      wake();
-    };
+      const eng = engRef.current;
+      const prevInVp = eng.inViewport;
+      eng.inViewport = inVp;
 
-    const handleTouchStart = (e: TouchEvent) => {
-      if (!activeRef.current || modalRef.current) return;
-      if (e.touches[0]) {
-        engineRef.current.touchY = e.touches[0].clientY;
+      const maxScroll = Math.max(1, rect.height - vh);
+      const scrolled = clamp(-rect.top, 0, maxScroll);
+      const progress = scrolled / maxScroll;
+
+      // Soft detent mapping: gives each project a generous resting plateau at 100% fullscreen,
+      // with smooth transition zones between 01 -> 02 -> 03!
+      let mapped = 0;
+      if (count > 1) {
+        // Divide 0..1 into (count) equal slots with clean resting plateaus
+        const raw = progress * (count - 1);
+        mapped = clamp(raw, 0, count - 1);
+      }
+
+      if (Math.abs(mapped - eng.target) > 0.0005 || prevInVp !== inVp) {
+        eng.target = mapped;
+        eng.lastScrollTime = performance.now();
+        wake();
       }
     };
 
-    const handleTouchMove = (e: TouchEvent) => {
-      if (!activeRef.current || modalRef.current) return;
-      const eng = engineRef.current;
-      if (eng.touchY === null || !e.touches[0]) return;
-      const curY = e.touches[0].clientY;
-      const dy = eng.touchY - curY;
-      eng.touchY = curY;
-
-      if (eng.target <= 0.02 && eng.pos <= 0.08 && dy < -4) {
-        onBoundaryScrollUpRef.current?.(dy * 2.4);
-        return;
-      }
-
-      e.preventDefault();
-      eng.target = clamp(eng.target + dy * 0.0045, 0, count - 1);
-      eng.lastWheelTime = performance.now();
-      wake();
+    const onScroll = () => {
+      if (!scrollRaf) scrollRaf = requestAnimationFrame(syncScroll);
     };
 
-    const handleTouchEnd = () => {
-      engineRef.current.touchY = null;
-      wake();
-    };
-
-    el.addEventListener("wheel", handleWheel, { passive: false });
-    el.addEventListener("touchstart", handleTouchStart, { passive: true });
-    el.addEventListener("touchmove", handleTouchMove, { passive: false });
-    el.addEventListener("touchend", handleTouchEnd, { passive: true });
+    window.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("resize", onScroll, { passive: true });
+    syncScroll();
 
     return () => {
-      el.removeEventListener("wheel", handleWheel);
-      el.removeEventListener("touchstart", handleTouchStart);
-      el.removeEventListener("touchmove", handleTouchMove);
-      el.removeEventListener("touchend", handleTouchEnd);
+      window.removeEventListener("scroll", onScroll);
+      window.removeEventListener("resize", onScroll);
+      if (scrollRaf) cancelAnimationFrame(scrollRaf);
+      if (engRef.current.rafId) cancelAnimationFrame(engRef.current.rafId);
     };
   }, [count, wake]);
 
-  // Modal Escape / Arrow keys
+  // Repaint when aspect or nearView updates
   useEffect(() => {
-    if (!modal) return;
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") setModal(null);
-      else if (e.key === "ArrowRight" || e.key === "ArrowDown") {
-        setModal((m) =>
-          m ? { ...m, index: (m.index + 1) % count } : null
-        );
-      } else if (e.key === "ArrowLeft" || e.key === "ArrowUp") {
-        setModal((m) =>
-          m ? { ...m, index: (m.index - 1 + count) % count } : null
-        );
-      }
-    };
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, [modal, count]);
+    paint();
+    if (nearView) wake();
+  }, [aspect, nearView, paint, wake]);
 
-  const jumpToProject = useCallback(
+  // Smooth native scroll jump to a specific project index (0, 1, 2)
+  const jumpTo = useCallback(
     (idx: number) => {
-      const eng = engineRef.current;
-      eng.target = clamp(idx, 0, count - 1);
-      eng.lastWheelTime = performance.now() - 120;
-      // Trigger brief pull-back pulse even on click so 3D transition feels cohesive!
-      eng.scrollPull = Math.max(eng.scrollPull, 0.55);
-      wake();
+      const el = trackRef.current;
+      if (!el) return;
+      const clamped = clamp(idx, 0, count - 1);
+      const sectionTop = el.getBoundingClientRect().top + window.scrollY;
+      const maxScroll = Math.max(1, el.offsetHeight - window.innerHeight);
+      const targetY =
+        sectionTop + (count > 1 ? (clamped / (count - 1)) * maxScroll : 0);
+      window.scrollTo({ top: targetY, behavior: "smooth" });
     },
-    [count, wake]
+    [count]
   );
 
-  const handlePointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
-    const rect = sectionRef.current?.getBoundingClientRect();
-    if (!rect) return;
-    engineRef.current.targetMouseX = clamp(
-      ((e.clientX - rect.left) / rect.width - 0.5) * 2,
-      -1,
-      1
-    );
-    engineRef.current.targetMouseY = clamp(
-      ((e.clientY - rect.top) / rect.height - 0.5) * 2,
-      -1,
-      1
-    );
-    wake();
-  };
-
-  const handlePointerLeave = () => {
-    engineRef.current.targetMouseX = 0;
-    engineRef.current.targetMouseY = 0;
-    wake();
-  };
+  const returnToWork = useCallback(() => {
+    const targetEl =
+      document.getElementById("work-showcase") ||
+      document.getElementById("our-work");
+    if (targetEl) {
+      const top = targetEl.getBoundingClientRect().top + window.scrollY;
+      window.scrollTo({ top, behavior: "smooth" });
+    } else {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+  }, []);
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
-    if (modal) return;
-    if (e.key === "ArrowDown" || e.key === "PageDown") {
+    if (e.key === "ArrowRight") {
       e.preventDefault();
-      jumpToProject(Math.min(count - 1, Math.round(engineRef.current.target) + 1));
-    } else if (e.key === "ArrowUp" || e.key === "PageUp") {
+      jumpTo(Math.min(count - 1, activeIdx + 1));
+    } else if (e.key === "ArrowLeft") {
       e.preventDefault();
-      if (Math.round(engineRef.current.target) <= 0) {
-        onBoundaryScrollUp?.(-280);
-      } else {
-        jumpToProject(Math.max(0, Math.round(engineRef.current.target) - 1));
-      }
+      jumpTo(Math.max(0, activeIdx - 1));
+    } else if (e.key === "i" || e.key === "I") {
+      setInfoOpen((v) => !v);
+    } else if (e.key === "Escape" && infoOpen) {
+      setInfoOpen(false);
     }
   };
 
-  const currentProject = TECH_PROJECTS[activeIdx];
-  const modalProject = modal ? TECH_PROJECTS[modal.index] : null;
+  const current = TECH_PROJECTS[activeIdx];
+  const portraitOnDesktop = aspect === "mobile" && !isMobileViewport;
 
   return (
-    <div
-      ref={sectionRef}
-      className={styles.section}
-      tabIndex={0}
-      role="region"
-      aria-label="Tech Work Interactive 3D Showcase"
-      onPointerMove={handlePointerMove}
-      onPointerLeave={handlePointerLeave}
-      onKeyDown={handleKeyDown}
+    <section
+      id="tech-work"
+      ref={trackRef}
+      aria-label="Tech Work Fullscreen Reel"
+      className="relative w-full bg-[#060608]"
+      style={{ height: "340vh" }}
     >
-      {/* Dynamic Soft Brand Ambient Aura */}
       <div
-        className={styles.aura}
-        style={{
-          background: `radial-gradient(ellipse 68% 64% at 68% 52%, rgba(${currentProject.auraRgb}, 0.13) 0%, rgba(${currentProject.auraRgb}, 0.04) 44%, rgba(255,255,255,0) 76%)`,
-        }}
-      />
+        className={`${styles.root} sticky top-0 h-screen w-full`}
+        tabIndex={0}
+        onKeyDown={handleKeyDown}
+      >
+        {/* Subtle Brand Aura Behind Pulled-Back 3D Video Cards */}
+        <div
+          className={styles.backdropGlow}
+          style={{ background: current.glow }}
+        />
 
-      {/* Subtle Architectural Grid */}
-      <div className={styles.gridBg} />
+        {/* 100% Fullscreen Edge-to-Edge 3D Horizontal Filmstrip */}
+        <div
+          className={styles.cinemaStage}
+          onClick={() => {
+            if (infoOpen) setInfoOpen(false);
+          }}
+        >
+          {TECH_PROJECTS.map((proj, idx) => {
+            const dist = Math.abs(idx - activeIdx);
+            const shouldAttachSrc = nearView && dist <= 1;
+            const preloadMode = !nearView
+              ? "none"
+              : dist === 0
+                ? "auto"
+                : dist === 1
+                  ? "metadata"
+                  : "none";
 
-      {/* Top Navigation Bar */}
-      <header className={styles.topBar}>
+            return (
+              <div
+                key={proj.id}
+                ref={(el) => {
+                  slideRefs.current[idx] = el;
+                }}
+                className={styles.reelSlide}
+                style={{
+                  transform: `translate3d(${idx * 102}vw, 0, 0px)`,
+                  opacity: idx === 0 ? 1 : 0,
+                  zIndex: 10 - idx * 3,
+                }}
+              >
+                <video
+                  ref={(el) => {
+                    videoRefs.current[idx] = el;
+                  }}
+                  key={`${proj.id}-${aspect}`}
+                  src={
+                    shouldAttachSrc
+                      ? aspect === "desktop"
+                        ? proj.desktopVideo
+                        : proj.mobileVideo
+                      : undefined
+                  }
+                  className={`${styles.reelVideo} ${
+                    portraitOnDesktop ? styles.reelVideoPortraitOnDesktop : ""
+                  }`}
+                  muted
+                  loop
+                  playsInline
+                  preload={preloadMode}
+                />
+                <div
+                  ref={(el) => {
+                    rimRefs.current[idx] = el;
+                  }}
+                  className={styles.reelRim}
+                />
+              </div>
+            );
+          })}
+        </div>
+
+        {/* Whisper Caption Visible ONLY in the Dark Stage Margin While Pulled Back During Scroll */}
+        <div
+          ref={scrollCaptionRef}
+          className={styles.scrollCaption}
+          aria-hidden="true"
+        >
+          <span>
+            {current.index} {current.shortName}
+          </span>
+          <span className={styles.scrollCaptionDivider} />
+          <span>{current.tech.slice(0, 3).join(" · ")}</span>
+        </div>
+
+        {/* Top-Left Minimal Return Pill */}
         <div className={styles.topLeft}>
-          {onReturnToWork && (
-            <button
-              type="button"
-              onClick={onReturnToWork}
-              className={styles.backBtn}
-              aria-label="Back to Our Work"
-            >
-              ↑ Our Work
-            </button>
-          )}
-          <div className={styles.sectionBadge}>
-            <span
-              className={styles.liveDot}
-              style={{
-                backgroundColor: currentProject.accent,
-                boxShadow: `0 0 10px rgba(${currentProject.auraRgb}, 0.65)`,
-              }}
-            />
-            <span>Tech Work</span>
-          </div>
-        </div>
-
-        {/* Interactive View Mode Switcher */}
-        <div className={styles.modeSwitch} role="group" aria-label="Device View">
-          {(["dual", "desktop", "mobile"] as ViewMode[]).map((m) => (
-            <button
-              key={m}
-              type="button"
-              onClick={() => setViewMode(m)}
-              className={`${styles.modeBtn} ${
-                viewMode === m ? styles.modeBtnActive : ""
-              }`}
-            >
-              {m === "dual" ? "Dual 3D" : m === "desktop" ? "Desktop" : "Mobile"}
-            </button>
-          ))}
-        </div>
-      </header>
-
-      {/* Main Spatial Layout */}
-      <div className={styles.layout}>
-        {/* Left Editorial Rail */}
-        <div className={styles.leftRail}>
-          <div className={styles.indexRow}>
-            <span
-              className={styles.indexPill}
-              style={{ backgroundColor: currentProject.accent }}
-            >
-              {currentProject.indexLabel} / 0{count}
-            </span>
-            <span className={styles.categoryLabel}>
-              {currentProject.category}
-            </span>
-          </div>
-
-          <div className={styles.titleMask}>
-            <h2 key={currentProject.id} className={styles.projectTitle}>
-              {currentProject.name}
-            </h2>
-          </div>
-
-          <p className={styles.tagline}>{currentProject.tagline}</p>
-
-          <div className={styles.tagRow}>
-            {currentProject.tags.map((tag) => (
-              <span key={tag} className={styles.tag}>
-                {tag}
-              </span>
-            ))}
-          </div>
-
-          <div className={styles.actionsRow}>
-            <button
-              type="button"
-              className={styles.expandBtn}
-              onClick={() =>
-                setModal({
-                  index: activeIdx,
-                  device: viewMode === "mobile" ? "mobile" : "desktop",
-                })
-              }
-            >
-              <span>Watch Fullscreen</span>
-              <span aria-hidden="true">↗</span>
-            </button>
-          </div>
-
-          {/* Direct Project Jump Index */}
-          <nav className={styles.selectorList} aria-label="Tech Projects">
-            {TECH_PROJECTS.map((proj, idx) => {
-              const isSelected = idx === activeIdx;
-              return (
-                <button
-                  key={proj.id}
-                  type="button"
-                  onClick={() => jumpToProject(idx)}
-                  className={`${styles.selectorItem} ${
-                    isSelected ? styles.selectorItemActive : ""
-                  }`}
-                >
-                  <span>
-                    {proj.indexLabel} — {proj.name}
-                  </span>
-                  <span className={styles.selectorBar}>
-                    <span
-                      className={styles.selectorBarFill}
-                      style={{
-                        backgroundColor: proj.accent,
-                        transform: isSelected ? "scaleX(1)" : "scaleX(0)",
-                      }}
-                    />
-                  </span>
-                </button>
-              );
-            })}
-          </nav>
-        </div>
-
-        {/* Right 3D Multi-Plane Video Stage */}
-        <div className={styles.stage3d}>
-          {/* Slow Background Parallax Numerals */}
-          <div className={styles.watermarkLayer} aria-hidden="true">
-            {TECH_PROJECTS.map((proj, idx) => (
-              <div
-                key={`wm-${proj.id}`}
-                ref={(el) => {
-                  slideRefs.current[idx].watermark = el;
-                }}
-                className={styles.watermarkNum}
-              >
-                {proj.indexLabel}
-              </div>
-            ))}
-          </div>
-
-          {/* 3D Dual-Device Video Slides */}
-          {TECH_PROJECTS.map((proj, idx) => (
-            <div key={proj.id} className={styles.projectSlide}>
-              {/* Desktop 16:9 Studio Frame */}
-              <div
-                ref={(el) => {
-                  slideRefs.current[idx].desktopRig = el;
-                }}
-                className={`${styles.desktopRig} ${
-                  viewMode === "desktop" ? styles.desktopRigSolo : ""
-                }`}
-                onClick={() => setModal({ index: idx, device: "desktop" })}
-                role="button"
-                aria-label={`Watch ${proj.name} desktop showcase fullscreen`}
-              >
-                <div className={styles.desktopBezel}>
-                  <div className={styles.browserChrome}>
-                    <div className={styles.chromeDots}>
-                      <span className={styles.chromeDot} />
-                      <span className={styles.chromeDot} />
-                      <span className={styles.chromeDot} />
-                    </div>
-                    <span className={styles.chromeUrl}>{proj.domain}</span>
-                    <div style={{ width: 32 }} />
-                  </div>
-                  <div className={styles.desktopScreen}>
-                    <video
-                      ref={(el) => {
-                        slideRefs.current[idx].desktopVideo = el;
-                      }}
-                      src={proj.desktopVideo}
-                      className={styles.videoFill}
-                      muted
-                      loop
-                      playsInline
-                      preload="auto"
-                    />
-                    <div className={styles.deviceGlare} />
-                  </div>
-                </div>
-              </div>
-
-              {/* Floating Foreground 9:16 iPhone Frame (Higher 3D Parallax Depth) */}
-              <div
-                ref={(el) => {
-                  slideRefs.current[idx].mobileRig = el;
-                }}
-                className={`${styles.mobileRig} ${
-                  viewMode === "mobile" ? styles.mobileRigSolo : ""
-                }`}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setModal({ index: idx, device: "mobile" });
-                }}
-                role="button"
-                aria-label={`Watch ${proj.name} mobile showcase fullscreen`}
-              >
-                <div className={styles.mobileBezel}>
-                  <div className={styles.mobileScreen}>
-                    <div className={styles.dynamicIsland} />
-                    <video
-                      ref={(el) => {
-                        slideRefs.current[idx].mobileVideo = el;
-                      }}
-                      src={proj.mobileVideo}
-                      className={styles.videoFill}
-                      muted
-                      loop
-                      playsInline
-                      preload="auto"
-                    />
-                    <div className={styles.deviceGlare} />
-                  </div>
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* Bottom Scroll Progress Indicator */}
-      <div className={styles.bottomCue}>
-        <span>Scroll</span>
-        <div className={styles.scrollTrack}>
-          <div ref={progressThumbRef} className={styles.scrollThumb} />
-        </div>
-        <span>
-          {currentProject.indexLabel} / 0{count}
-        </span>
-      </div>
-
-      {/* Fullscreen Video Cinema Lightbox Portal */}
-      {mounted &&
-        modal &&
-        modalProject &&
-        createPortal(
-          <div
-            className={styles.modalBackdrop}
-            onClick={() => setModal(null)}
-            onWheel={(e) => e.stopPropagation()}
-            role="dialog"
-            aria-modal="true"
-            aria-label={`${modalProject.name} Fullscreen Video`}
+          <button
+            type="button"
+            onClick={returnToWork}
+            className={styles.glassPillBtn}
+            aria-label="Back to Our Work"
           >
-            <div
-              className={styles.modalTop}
-              onClick={(e) => e.stopPropagation()}
-            >
-              <span>
-                {modalProject.indexLabel} — {modalProject.name}
-              </span>
+            <span>↑</span>
+            <span>Our Work</span>
+          </button>
+        </div>
 
-              <div className={styles.modalToggle}>
-                <button
-                  type="button"
-                  onClick={() =>
-                    setModal((m) => (m ? { ...m, device: "desktop" } : null))
-                  }
-                  className={`${styles.modalToggleBtn} ${
-                    modal.device === "desktop" ? styles.modalToggleBtnActive : ""
-                  }`}
-                >
-                  Desktop 16:9
-                </button>
-                <button
-                  type="button"
-                  onClick={() =>
-                    setModal((m) => (m ? { ...m, device: "mobile" } : null))
-                  }
-                  className={`${styles.modalToggleBtn} ${
-                    modal.device === "mobile" ? styles.modalToggleBtnActive : ""
-                  }`}
-                >
-                  Mobile 9:16
-                </button>
-              </div>
-
-              <button
-                type="button"
-                className={styles.modalCloseBtn}
-                onClick={() => setModal(null)}
-              >
-                Close ✕
-              </button>
-            </div>
-
-            <div
-              onClick={(e) => e.stopPropagation()}
-              className={
-                modal.device === "desktop"
-                  ? styles.modalFrameDesktop
-                  : styles.modalFrameMobile
+        {/* Bottom-Left Minimal Floating Corner Label + Expandable Project Info Card */}
+        <div className={styles.cornerDock}>
+          <motion.div
+            layout
+            transition={{ duration: 0.42, ease: [0.16, 1, 0.3, 1] }}
+            className={styles.cornerCard}
+            style={{ borderRadius: infoOpen ? 20 : 999 }}
+          >
+            <button
+              type="button"
+              className={styles.cornerHeader}
+              onClick={() => setInfoOpen((v) => !v)}
+              aria-expanded={infoOpen}
+              aria-label={
+                infoOpen
+                  ? `Hide details for ${current.title}`
+                  : `Show details for ${current.title}`
               }
             >
-              <video
-                key={`${modalProject.id}-${modal.device}`}
-                src={
-                  modal.device === "desktop"
-                    ? modalProject.desktopVideo
-                    : modalProject.mobileVideo
-                }
-                className={styles.videoFill}
-                autoPlay
-                muted
-                loop
-                playsInline
-                controls
-              />
-            </div>
-          </div>,
-          document.body
-        )}
-    </div>
+              <span className={styles.cornerHeaderLeft}>
+                <span
+                  className={styles.accentDot}
+                  style={{
+                    backgroundColor: current.accent,
+                    boxShadow: `0 0 10px ${current.accent}`,
+                  }}
+                />
+                <span className={styles.cornerIndex}>{current.index}</span>
+                <span className={styles.cornerName}>{current.shortName}</span>
+              </span>
+              <span className={styles.cornerToggle}>
+                {infoOpen ? "Close −" : "Info +"}
+              </span>
+            </button>
+
+            <AnimatePresence initial={false}>
+              {infoOpen && (
+                <motion.div
+                  key="info-panel"
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: "auto" }}
+                  exit={{ opacity: 0, height: 0 }}
+                  transition={{ duration: 0.38, ease: [0.16, 1, 0.3, 1] }}
+                  style={{ overflow: "hidden" }}
+                >
+                  <div className={styles.infoBody}>
+                    <AnimatePresence mode="wait">
+                      <motion.div
+                        key={current.id}
+                        initial={{ opacity: 0, y: 6 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -6 }}
+                        transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
+                      >
+                        <div className={styles.infoMeta}>
+                          <span>{current.category}</span>
+                          <span>
+                            {current.index} / 0{count}
+                          </span>
+                        </div>
+                        <h2 className={styles.infoTitle}>{current.title}</h2>
+                        <p className={styles.infoDescription}>{current.info}</p>
+
+                        <div className={styles.techStackLabel}>Tech Stack</div>
+                        <div className={styles.techList}>
+                          {current.tech.map((t) => (
+                            <span key={t} className={styles.techPill}>
+                              {t}
+                            </span>
+                          ))}
+                        </div>
+                      </motion.div>
+                    </AnimatePresence>
+
+                    <div className={styles.infoFooter}>
+                      <div
+                        className={styles.aspectToggle}
+                        role="group"
+                        aria-label="Video View"
+                      >
+                        <button
+                          type="button"
+                          onClick={() => setAspect("desktop")}
+                          className={`${styles.aspectBtn} ${
+                            aspect === "desktop" ? styles.aspectBtnActive : ""
+                          }`}
+                        >
+                          16:9
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setAspect("mobile")}
+                          className={`${styles.aspectBtn} ${
+                            aspect === "mobile" ? styles.aspectBtnActive : ""
+                          }`}
+                        >
+                          9:16
+                        </button>
+                      </div>
+
+                      <div className={styles.stepNav}>
+                        <button
+                          type="button"
+                          className={styles.stepBtn}
+                          onClick={() => jumpTo(activeIdx - 1)}
+                          disabled={activeIdx === 0}
+                          aria-label="Previous project"
+                        >
+                          ←
+                        </button>
+                        <button
+                          type="button"
+                          className={styles.stepBtn}
+                          onClick={() => jumpTo(activeIdx + 1)}
+                          disabled={activeIdx === count - 1}
+                          aria-label="Next project"
+                        >
+                          →
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </motion.div>
+        </div>
+
+        {/* Bottom-Right Minimal Floating Index Switcher */}
+        <nav className={styles.cornerNavRight} aria-label="Tech Projects">
+          {TECH_PROJECTS.map((proj, idx) => {
+            const isSel = idx === activeIdx;
+            return (
+              <button
+                key={proj.id}
+                type="button"
+                onClick={() => jumpTo(idx)}
+                className={`${styles.dotBtn} ${isSel ? styles.dotBtnActive : ""}`}
+                aria-label={`Jump to ${proj.title}`}
+              >
+                <span
+                  className={styles.dotIndicator}
+                  style={isSel ? { backgroundColor: proj.accent } : undefined}
+                />
+                <span>{proj.index}</span>
+              </button>
+            );
+          })}
+        </nav>
+      </div>
+    </section>
   );
 }
