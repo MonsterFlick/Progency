@@ -845,15 +845,28 @@ export function InkBackground({
       }
     }, 500);
 
+    let cachedRect = { left: 0, top: 0, width: 1, height: 1 };
+    const syncRect = () => {
+      const r = root.getBoundingClientRect();
+      cachedRect = {
+        left: r.left,
+        top: r.top,
+        width: Math.max(1, r.width),
+        height: Math.max(1, r.height),
+      };
+    };
+    syncRect();
+    window.addEventListener("resize", syncRect, { passive: true });
+
     const local = (event: PointerEvent) => {
-      const rect = root.getBoundingClientRect();
       return {
-        x: (event.clientX - rect.left) / rect.width,
-        y: 1 - (event.clientY - rect.top) / rect.height,
+        x: (event.clientX - cachedRect.left) / cachedRect.width,
+        y: 1 - (event.clientY - cachedRect.top) / cachedRect.height,
       };
     };
 
     const onMove = (event: PointerEvent) => {
+      if (pausedRef.current) return;
       const p = local(event);
       if (hand.on) {
         const dx = p.x - hand.x;
@@ -883,6 +896,7 @@ export function InkBackground({
     };
 
     const onDown = (event: PointerEvent) => {
+      if (pausedRef.current) return;
       if ((event.target as HTMLElement).closest("a, button, input, textarea")) {
         return;
       }
@@ -926,6 +940,7 @@ export function InkBackground({
       resizeObserver.disconnect();
       intersection.disconnect();
       document.removeEventListener("visibilitychange", onVisibility);
+      window.removeEventListener("resize", syncRect);
       window.clearInterval(colorTimer);
       root.removeEventListener("pointermove", onMove);
       root.removeEventListener("pointerleave", onLeave);

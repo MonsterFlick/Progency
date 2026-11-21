@@ -226,7 +226,7 @@ export function OurWorkHero() {
           muted: true,
           loop: true,
           playsInline: true,
-          preload: "auto",
+          preload: "metadata",
           src: item.video,
         });
         v.setAttribute("playsinline", "");
@@ -349,15 +349,33 @@ export function OurWorkHero() {
     /* ---------- scroll ---------- */
     let target = 0;
     let p = 0;
-    let inView = true;
+    let inView = false;
+    let animId = 0;
+    let trackTop = 0;
+    let trackH = 1;
+
+    function updateTrackMetrics() {
+      if (!track) return;
+      const rect = track.getBoundingClientRect();
+      trackTop = rect.top + window.scrollY;
+      trackH = Math.max(1, rect.height);
+    }
+    window.addEventListener("resize", updateTrackMetrics, { passive: true });
+    updateTrackMetrics();
 
     const readScroll = () => {
-      const rect = track.getBoundingClientRect();
-      const totalScrollable = rect.height - window.innerHeight;
-      if (totalScrollable <= 0) return;
-      const scrolled = -rect.top;
+      const vh = window.innerHeight || 800;
+      const scrollY = window.scrollY;
+      const totalScrollable = Math.max(1, trackH - vh);
+      const scrolled = scrollY - trackTop;
       target = clamp(scrolled / totalScrollable, 0, 1);
-      inView = rect.bottom > 0 && rect.top < window.innerHeight + 50;
+
+      const prevInView = inView;
+      inView = scrollY + vh > trackTop - 120 && scrollY < trackTop + trackH + 120;
+
+      if (inView && (!prevInView || !animId)) {
+        if (!animId) animId = requestAnimationFrame(loop);
+      }
     };
 
     window.addEventListener("scroll", readScroll, { passive: true });
@@ -498,30 +516,39 @@ export function OurWorkHero() {
     stage.addEventListener("pointermove", handlePointerMove);
 
     /* ---------- loop ---------- */
-    let animId = 0;
     function loop() {
-      if (inView) {
-        p += (target - p) * 0.09;
-        if (Math.abs(target - p) < 0.00005) p = target;
+      rafLoop();
+    }
 
-        for (const c of cards) {
-          if (c.v) {
-            if (c.mesh.visible && c.v.paused) {
-              c.v.play().catch(() => {});
-            } else if (!c.mesh.visible && !c.v.paused) {
-              c.v.pause();
-            }
+    function rafLoop() {
+      if (!inView) {
+        animId = 0;
+        return;
+      }
+
+      p += (target - p) * 0.09;
+      if (Math.abs(target - p) < 0.00005) p = target;
+
+      for (const c of cards) {
+        if (c.v) {
+          if (c.mesh.visible && c.v.paused) {
+            c.v.play().catch(() => {});
+          } else if (!c.mesh.visible && !c.v.paused) {
+            c.v.pause();
           }
         }
-        render();
       }
-      animId = requestAnimationFrame(loop);
+      render();
+      animId = requestAnimationFrame(rafLoop);
     }
-    loop();
+    if (inView) {
+      animId = requestAnimationFrame(rafLoop);
+    }
 
     return () => {
-      cancelAnimationFrame(animId);
+      if (animId) cancelAnimationFrame(animId);
       window.removeEventListener("resize", resize);
+      window.removeEventListener("resize", updateTrackMetrics);
       window.removeEventListener("scroll", readScroll);
       stage.removeEventListener("pointermove", handlePointerMove);
 

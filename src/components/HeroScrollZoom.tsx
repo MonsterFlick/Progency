@@ -40,12 +40,10 @@ export default function HeroScrollZoom() {
   const [inkPaused, setInkPaused] = useState(false);
   const inkPausedRef = useRef(false);
   const [heroEffect, setHeroEffect] = useState<"meteors" | "wind">("meteors");
-  const userScrolledRef = useRef(false);
-  const autoScrollRafRef = useRef(0);
-  const autoScrollTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Exact coordinates of the letter 'G' in unscaled screen coordinates
   const gPosRef = useRef<{ x: number; y: number } | null>(null);
+  const cachedScrollableRef = useRef(1);
 
   const measureG = useCallback(() => {
     const gEl = document.getElementById("hero-letter-g");
@@ -60,21 +58,27 @@ export default function HeroScrollZoom() {
     }
   }, []);
 
+  const updateCachedMetrics = useCallback(() => {
+    measureG();
+    if (trackRef.current) {
+      const vh = window.innerHeight || 800;
+      cachedScrollableRef.current = Math.max(1, trackRef.current.offsetHeight - vh);
+    }
+  }, [measureG]);
+
   useEffect(() => {
-    let rafId = requestAnimationFrame(measureG);
+    let rafId = requestAnimationFrame(updateCachedMetrics);
 
     if (document.fonts) {
       document.fonts.ready.then(() => {
         cancelAnimationFrame(rafId);
-        rafId = requestAnimationFrame(measureG);
+        rafId = requestAnimationFrame(updateCachedMetrics);
       });
     }
 
     const onResize = () => {
-      if (window.scrollY === 0) {
-        cancelAnimationFrame(rafId);
-        rafId = requestAnimationFrame(measureG);
-      }
+      cancelAnimationFrame(rafId);
+      rafId = requestAnimationFrame(updateCachedMetrics);
     };
 
     window.addEventListener("resize", onResize, { passive: true });
@@ -82,16 +86,12 @@ export default function HeroScrollZoom() {
       cancelAnimationFrame(rafId);
       window.removeEventListener("resize", onResize);
     };
-  }, [measureG]);
+  }, [updateCachedMetrics]);
 
-  // High-performance 120fps direct-DOM scroll update (eliminates React render lag completely)
+  // High-performance 120fps direct-DOM scroll update (zero layout thrashing, zero reflows)
   const applyScrollTransform = useCallback(() => {
-    if (!trackRef.current) return;
-    const rect = trackRef.current.getBoundingClientRect();
-    const totalScrollable = rect.height - window.innerHeight;
-    if (totalScrollable <= 0) return;
-
-    const scrolled = -rect.top;
+    const totalScrollable = cachedScrollableRef.current;
+    const scrolled = window.scrollY;
     const p = Math.max(0, Math.min(1, scrolled / totalScrollable));
 
     const vpW = window.innerWidth;
@@ -179,70 +179,10 @@ export default function HeroScrollZoom() {
     };
   }, [applyScrollTransform]);
 
-  // Cancel auto-scroll if user interacts
-  useEffect(() => {
-    const cancelAutoScroll = () => {
-      userScrolledRef.current = true;
-      if (autoScrollTimeoutRef.current) {
-        clearTimeout(autoScrollTimeoutRef.current);
-        autoScrollTimeoutRef.current = null;
-      }
-      if (autoScrollRafRef.current) {
-        cancelAnimationFrame(autoScrollRafRef.current);
-        autoScrollRafRef.current = 0;
-      }
-    };
-
-    window.addEventListener("wheel", cancelAutoScroll, { passive: true });
-    window.addEventListener("touchmove", cancelAutoScroll, { passive: true });
-    window.addEventListener("touchstart", cancelAutoScroll, { passive: true });
-    window.addEventListener("pointerdown", cancelAutoScroll, { passive: true });
-    window.addEventListener("keydown", cancelAutoScroll, { passive: true });
-
-    return () => {
-      window.removeEventListener("wheel", cancelAutoScroll);
-      window.removeEventListener("touchmove", cancelAutoScroll);
-      window.removeEventListener("touchstart", cancelAutoScroll);
-      window.removeEventListener("pointerdown", cancelAutoScroll);
-      window.removeEventListener("keydown", cancelAutoScroll);
-      if (autoScrollTimeoutRef.current) clearTimeout(autoScrollTimeoutRef.current);
-      if (autoScrollRafRef.current) cancelAnimationFrame(autoScrollRafRef.current);
-    };
-  }, []);
-
-  // Smooth cinematic auto-scroll down into the letter 'G' of Progency if user doesn't scroll
   const handleIntroComplete = useCallback(() => {
     setIntroDone(true);
-    measureG();
-
-    // After intro finishes, if user doesn't scroll within 1 second, initiate smooth zoom into 'G'
-    autoScrollTimeoutRef.current = setTimeout(() => {
-      if (userScrolledRef.current || window.scrollY > 30) return;
-      if (!trackRef.current) return;
-
-      const rect = trackRef.current.getBoundingClientRect();
-      const totalScrollable = rect.height - window.innerHeight;
-      const startY = window.scrollY;
-      const targetY = startY + totalScrollable * 0.88;
-      const duration = 2400; // ms
-      const startTime = performance.now();
-
-      const step = (now: number) => {
-        if (userScrolledRef.current) return;
-        const elapsed = now - startTime;
-        const t = Math.min(1, elapsed / duration);
-        // Smooth ease-in-out cubic curve
-        const ease = t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
-        window.scrollTo(0, startY + (targetY - startY) * ease);
-
-        if (t < 1) {
-          autoScrollRafRef.current = requestAnimationFrame(step);
-        }
-      };
-
-      autoScrollRafRef.current = requestAnimationFrame(step);
-    }, 1100);
-  }, [measureG]);
+    updateCachedMetrics();
+  }, [updateCachedMetrics]);
 
   return (
     <>

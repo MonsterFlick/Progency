@@ -70,7 +70,8 @@ class Line {
         }
     }
 
-    update() {
+    update(): number {
+        let maxEnergy = 0;
         let spring = this.spring;
         const { target, dampening, tension } = this.cfg;
         let node = this.nodes[0];
@@ -92,7 +93,10 @@ class Line {
             node.x += node.vx;
             node.y += node.vy;
             spring *= tension;
+            const energy = Math.abs(node.vx) + Math.abs(node.vy);
+            if (energy > maxEnergy) maxEnergy = energy;
         }
+        return maxEnergy;
     }
 
     draw(ctx: CanvasRenderingContext2D) {
@@ -339,6 +343,8 @@ const LineCursor = React.memo(function LineCursor(props: LineCursorProps) {
             canvas.height = ch;
         }
 
+        let idleFrames = 0;
+
         function updatePosition(e: MouseEvent | TouchEvent) {
             if (pausedRef.current) return;
             let clientX: number, clientY: number;
@@ -353,6 +359,10 @@ const LineCursor = React.memo(function LineCursor(props: LineCursorProps) {
             const sy = cachedRect.height > 0 ? cachedRect.ch / cachedRect.height : 1;
             target.x = (clientX - cachedRect.left) * sx;
             target.y = (clientY - cachedRect.top) * sy;
+            idleFrames = 0;
+            if (!rafId && running && started && !pausedRef.current) {
+                loop();
+            }
         }
 
         function onFirstMove(e: MouseEvent | TouchEvent) {
@@ -382,12 +392,25 @@ const LineCursor = React.memo(function LineCursor(props: LineCursorProps) {
             ctx.strokeStyle = strokes[held % strokes.length];
             ctx.lineWidth = Math.max(0.1, thickness);
 
+            let maxEnergy = 0;
             for (let i = 0; i < count; i++) {
                 const line = lines[i];
                 if (!line) continue;
-                line.update();
+                const e = line.update();
+                if (e > maxEnergy) maxEnergy = e;
                 line.draw(ctx);
             }
+
+            // Sleep loop once ribbon trails have completely settled and pointer is stationary
+            if (maxEnergy < 0.08) {
+                idleFrames++;
+                if (idleFrames > 25) {
+                    return;
+                }
+            } else {
+                idleFrames = 0;
+            }
+
             rafId = window.requestAnimationFrame(loop);
         }
 
