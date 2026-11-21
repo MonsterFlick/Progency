@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono, Fragment_Mono } from "next/font/google";
 import "./globals.css";
+import SiteCursor from "@/components/SiteCursor";
+import AppleStyleDock from "@/components/AppleStyleDock";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -28,13 +30,22 @@ export const metadata: Metadata = {
   description: "Progency — Creative Production & Tech Work",
 };
 
-export default function RootLayout({ children }: LayoutProps<"/">) {
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   return (
     <html
       lang="en"
       className={`${geistSans.variable} ${geistMono.variable} ${fragmentMono.variable} h-full antialiased`}
+      suppressHydrationWarning
     >
-      <body className="min-h-full flex flex-col">{children}</body>
+      <body className="min-h-full flex flex-col" suppressHydrationWarning>
+        {children}
+        <SiteCursor />
+        <AppleStyleDock />
+      </body>
     </html>
   );
 }

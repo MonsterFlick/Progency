@@ -10,8 +10,7 @@ const TechWorkShowcase = dynamic(
     loading: () => (
       <section
         id="tech-work"
-        className="relative w-full bg-[#060608]"
-        style={{ height: "340vh" }}
+        className="relative w-full min-h-[800px] bg-[#070709]"
       />
     ),
   }
