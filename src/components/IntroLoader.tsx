@@ -44,7 +44,7 @@ export const IntroLoader: React.FC<IntroLoaderProps> = ({
   greetings = DEFAULT_GREETINGS,
   onComplete,
   fullScreen = true,
-  intervalMs = 240,
+  intervalMs = 360,
   showProgress = true,
   showLangBadge = true,
   allowSkip = true,
@@ -59,8 +59,16 @@ export const IntroLoader: React.FC<IntroLoaderProps> = ({
   const [greetingIndex, setGreetingIndex] = useState(0);
   const [stage, setStage] = useState<'greeting' | 'done'>('greeting');
   const [cycleKey, setCycleKey] = useState(0);
+  const [mounted, setMounted] = useState(false);
   const reducedMotion = useReducedMotion();
   const containerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  // Safe SSR-compatible motion reduction check (prevents hydration mismatch)
+  const shouldReduceMotion = mounted ? Boolean(reducedMotion) : false;
 
   const adjustedInterval = Math.max(100, Math.round(intervalMs / speedMultiplier));
 
@@ -73,13 +81,6 @@ export const IntroLoader: React.FC<IntroLoaderProps> = ({
   useEffect(() => {
     if (stage !== 'greeting') return;
 
-    if (reducedMotion) {
-      const timeout = setTimeout(() => {
-        handleFinish();
-      }, 0);
-      return () => clearTimeout(timeout);
-    }
-
     let finishTimeout: ReturnType<typeof setTimeout> | null = null;
     const interval = setInterval(() => {
       setGreetingIndex((prev) => {
@@ -89,7 +90,7 @@ export const IntroLoader: React.FC<IntroLoaderProps> = ({
           clearInterval(interval);
           finishTimeout = setTimeout(() => {
             handleFinish();
-          }, Math.round(450 / speedMultiplier));
+          }, Math.round(600 / speedMultiplier));
           return prev;
         }
       });
@@ -99,7 +100,7 @@ export const IntroLoader: React.FC<IntroLoaderProps> = ({
       clearInterval(interval);
       if (finishTimeout) clearTimeout(finishTimeout);
     };
-  }, [cycleKey, stage, normalizedGreetings.length, adjustedInterval, reducedMotion, handleFinish, speedMultiplier]);
+  }, [cycleKey, stage, normalizedGreetings.length, adjustedInterval, handleFinish, speedMultiplier]);
 
   // Keyboard shortcut listener (ESC to skip)
   useEffect(() => {
@@ -187,21 +188,10 @@ export const IntroLoader: React.FC<IntroLoaderProps> = ({
           <div className="relative z-10 flex flex-col items-center justify-center text-center px-4 max-w-lg mx-auto">
             <motion.div
               key={`greeting-${greetingIndex}`}
-              initial={
-                reducedMotion
-                  ? { opacity: 0 }
-                  : { opacity: 0, scale: 0.94, y: 10, filter: 'blur(8px)' }
-              }
-              animate={
-                reducedMotion
-                  ? { opacity: 1 }
-                  : { opacity: 1, scale: 1, y: 0, filter: 'blur(0px)' }
-              }
-              exit={
-                reducedMotion
-                  ? { opacity: 0 }
-                  : { opacity: 0, scale: 1.03, y: -10, filter: 'blur(8px)' }
-              }
+              suppressHydrationWarning
+              initial={{ opacity: 0, scale: 0.94, y: 10, filter: 'blur(8px)' }}
+              animate={{ opacity: 1, scale: 1, y: 0, filter: 'blur(0px)' }}
+              exit={{ opacity: 0, scale: 1.03, y: -10, filter: 'blur(8px)' }}
               transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
               className="flex items-center justify-center text-center gap-3"
             >

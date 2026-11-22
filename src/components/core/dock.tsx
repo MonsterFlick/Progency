@@ -21,10 +21,10 @@ import React, {
 } from 'react';
 import { cn } from '@/lib/utils';
 
-const DOCK_HEIGHT = 128;
-const DEFAULT_MAGNIFICATION = 80;
-const DEFAULT_DISTANCE = 150;
-const DEFAULT_PANEL_HEIGHT = 64;
+const DOCK_HEIGHT = 68;
+const DEFAULT_MAGNIFICATION = 56;
+const DEFAULT_DISTANCE = 120;
+const DEFAULT_PANEL_HEIGHT = 44;
 
 export type DockProps = {
   children: React.ReactNode;
@@ -89,7 +89,7 @@ function Dock({
   const isHovered = useMotionValue(0);
 
   const maxHeight = useMemo(() => {
-    return Math.max(DOCK_HEIGHT, magnification + magnification / 2 + 4);
+    return Math.max(DOCK_HEIGHT, magnification + 8);
   }, [magnification]);
 
   const heightRow = useTransform(isHovered, [0, 1], [panelHeight, maxHeight]);
@@ -113,7 +113,7 @@ function Dock({
           mouseX.set(Infinity);
         }}
         className={cn(
-          'mx-auto flex w-fit gap-4 rounded-2xl bg-gray-50/90 px-4 dark:bg-neutral-900/90 border border-black/5 dark:border-white/10 shadow-lg backdrop-blur-md',
+          'mx-auto flex w-fit items-center gap-2 rounded-full bg-neutral-950/85 px-2.5 py-1.5 border border-white/15 shadow-2xl backdrop-blur-xl',
           className
         )}
         style={{ height: panelHeight }}
@@ -143,7 +143,7 @@ function DockItem({ children, className, onClick }: DockItemProps) {
   const widthTransform = useTransform(
     mouseDistance,
     [-distance, 0, distance],
-    [40, magnification, 40]
+    [34, magnification, 34]
   );
 
   const width = useSpring(widthTransform, spring);
@@ -204,7 +204,7 @@ function DockLabel({ children, className, ...rest }: DockLabelProps) {
           exit={{ opacity: 0, y: 0 }}
           transition={{ duration: 0.2 }}
           className={cn(
-            'absolute -top-7 left-1/2 w-fit whitespace-pre rounded-md border border-gray-200 bg-gray-100/95 px-2 py-0.5 text-xs font-medium text-neutral-700 shadow-md backdrop-blur-sm dark:border-neutral-800 dark:bg-neutral-800/95 dark:text-white pointer-events-none z-50',
+            'absolute -top-8 left-1/2 w-fit whitespace-pre rounded-md border border-white/15 bg-neutral-900/95 px-2 py-0.5 text-[11px] font-medium text-white shadow-lg backdrop-blur-md pointer-events-none z-50',
             className
           )}
           role='tooltip'

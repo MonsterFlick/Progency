@@ -611,9 +611,7 @@ export function FlowField({
       return;
     }
 
-    const still =
-      speed <= 0 ||
-      window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const still = speed <= 0;
     const air = createAir(speed);
     const particles = new Particles();
     const size = { width: 0, height: 0 };

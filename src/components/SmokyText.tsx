@@ -473,7 +473,26 @@ const SmokyText = React.memo(function SmokyText(__props: SmokyTextProps = {}) {
                                 const restShadow = `0 0 1px ${color}, 0 2px 14px rgba(255, 255, 255, 0.55), 0 6px 28px rgba(180, 220, 255, 0.4)`
                                 const base: React.CSSProperties = {
                                     display: "inline-block",
+                                    color: color || "#FFFFFF",
                                     textShadow: restShadow,
+                                }
+
+                                const isCharVisible = forceVisible || phase === "visible"
+
+                                if (isCharVisible) {
+                                    return (
+                                        <span
+                                            key={c.globalIdx}
+                                            id={isG ? "hero-letter-g" : undefined}
+                                            data-char={c.char}
+                                            style={{
+                                                ...base,
+                                                opacity: 1,
+                                            }}
+                                        >
+                                            {c.char}
+                                        </span>
+                                    )
                                 }
 
                                 if (phase === "hidden") {
@@ -485,24 +504,6 @@ const SmokyText = React.memo(function SmokyText(__props: SmokyTextProps = {}) {
                                             style={{
                                                 ...base,
                                                 opacity: 0,
-                                            }}
-                                        >
-                                            {c.char}
-                                        </span>
-                                    )
-                                }
-
-                                if (phase === "visible") {
-                                    return (
-                                        <span
-                                            key={c.globalIdx}
-                                            id={isG ? "hero-letter-g" : undefined}
-                                            data-char={c.char}
-                                            style={{
-                                                ...base,
-                                                // When actively zooming with scroll, use solid crisp white fill
-                                                color: forceVisible ? (color || "#FFFFFF") : undefined,
-                                                opacity: 1,
                                             }}
                                         >
                                             {c.char}

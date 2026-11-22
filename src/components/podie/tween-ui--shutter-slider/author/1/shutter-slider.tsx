@@ -94,133 +94,149 @@ const CHAR_SPLIT = { type: 'words,chars', wordsClass: 'ss-word', charsClass: 'ss
 
 /** Resting pose: everything in place, base image showing, shutter parked. */
 function settle(p: SlideParts) {
-  gsap.set(p.chars, { rotationX: 0, opacity: 1 });
-  gsap.set(p.lines, { yPercent: 0, rotation: 0 });
-  gsap.set(p.capChars, { opacity: 1, yPercent: 0 });
+  if (p.chars?.length) gsap.set(p.chars, { rotationX: 0, opacity: 1 });
+  if (p.lines?.length) gsap.set(p.lines, { yPercent: 0, rotation: 0 });
+  if (p.capChars?.length) gsap.set(p.capChars, { opacity: 1, yPercent: 0 });
   if (p.caption) gsap.set(p.caption, { filter: 'none' });
-  gsap.set(p.base, { autoAlpha: 1, scale: 1, filter: 'none' });
-  gsap.set(p.shutter, { autoAlpha: 0 });
+  if (p.base) gsap.set(p.base, { autoAlpha: 1, scale: 1, filter: 'none' });
+  if (p.shutter) gsap.set(p.shutter, { autoAlpha: 0 });
 }
 
 /** "About to enter" pose, mirrored for `dir` (1 = next, -1 = previous). */
 function prime(p: SlideParts, dir: number) {
   // Letters turn around an axis behind them, like faces on a drum.
   const depth = parseFloat(getComputedStyle(p.heading).fontSize || '16') * -0.4;
-  gsap.set(p.chars, { rotationX: -95 * dir, opacity: 0, transformOrigin: `50% 50% ${depth}px` });
-  gsap.set(p.lines, { yPercent: 105 * dir, rotation: 2.5 * dir, transformOrigin: '0% 100%' });
-  gsap.set(p.capChars, { opacity: 0, yPercent: 40 * dir });
+  if (p.chars?.length) gsap.set(p.chars, { rotationX: -95 * dir, opacity: 0, transformOrigin: `50% 50% ${depth}px` });
+  if (p.lines?.length) gsap.set(p.lines, { yPercent: 105 * dir, rotation: 2.5 * dir, transformOrigin: '0% 100%' });
+  if (p.capChars?.length) gsap.set(p.capChars, { opacity: 0, yPercent: 40 * dir });
   if (p.caption) gsap.set(p.caption, { filter: 'blur(6px)' });
-  gsap.set(p.base, { autoAlpha: 0, scale: 1, filter: 'brightness(1)' });
-  gsap.set(p.shutter, { autoAlpha: 1 });
+  if (p.base) gsap.set(p.base, { autoAlpha: 0, scale: 1, filter: 'brightness(1)' });
+  if (p.shutter) gsap.set(p.shutter, { autoAlpha: 1 });
   // Alternate slats open from opposite ends — swapped when travelling back.
-  gsap.set(p.slats, {
-    clipPath: (i: number) =>
-      (i % 2 === 0) === dir > 0 ? 'inset(100% 0% 0% 0%)' : 'inset(0% 0% 100% 0%)',
-  });
-  gsap.set(p.slatImgs, { scale: 1.25, yPercent: (i: number) => (i % 2 ? -6 : 6) * dir });
+  if (p.slats?.length) {
+    gsap.set(p.slats, {
+      clipPath: (i: number) =>
+        (i % 2 === 0) === dir > 0 ? 'inset(100% 0% 0% 0%)' : 'inset(0% 0% 100% 0%)',
+    });
+  }
+  if (p.slatImgs?.length) {
+    gsap.set(p.slatImgs, { scale: 1.25, yPercent: (i: number) => (i % 2 ? -6 : 6) * dir });
+  }
 }
 
 function enter(p: SlideParts, dir: number) {
   const from = dir > 0 ? 'start' : 'end';
-  return (
-    gsap
-      .timeline()
-      // Slats open in a wave from the side we're travelling toward.
-      .to(
-        p.slats,
-        {
-          clipPath: 'inset(0% 0% 0% 0%)',
-          duration: 1.1,
-          ease: 'shutter-in-out',
-          stagger: { each: 0.07, from },
-        },
-        0
-      )
-      .to(
-        p.slatImgs,
-        {
-          scale: 1,
-          yPercent: 0,
-          duration: 1.5,
-          ease: 'shutter-out',
-          stagger: { each: 0.07, from },
-        },
-        0
-      )
-      // Hand over to the single base image so no slat seams remain at rest.
-      .set(p.base, { autoAlpha: 1 })
-      .set(p.shutter, { autoAlpha: 0 })
-      .to(
-        p.chars,
-        {
-          rotationX: 0,
-          opacity: 1,
-          duration: 1,
-          ease: 'shutter-out',
-          stagger: { each: 0.03, from },
-        },
-        0.3
-      )
-      .to(
-        p.lines,
-        { yPercent: 0, rotation: 0, duration: 1, ease: 'shutter-out', stagger: 0.08 },
-        0.45
-      )
-      // Caption pulls focus from the centre outward.
-      .to(
-        p.capChars,
-        {
-          opacity: 1,
-          yPercent: 0,
-          duration: 0.8,
-          ease: 'shutter-out',
-          stagger: { each: 0.012, from: 'center' },
-        },
-        0.65
-      )
-      .to(p.caption, { filter: 'blur(0px)', duration: 0.9, ease: 'shutter-out' }, 0.65)
-  );
+  const tl = gsap.timeline();
+  if (p.slats?.length) {
+    tl.to(
+      p.slats,
+      {
+        clipPath: 'inset(0% 0% 0% 0%)',
+        duration: 1.1,
+        ease: 'shutter-in-out',
+        stagger: { each: 0.07, from },
+      },
+      0
+    );
+  }
+  if (p.slatImgs?.length) {
+    tl.to(
+      p.slatImgs,
+      {
+        scale: 1,
+        yPercent: 0,
+        duration: 1.5,
+        ease: 'shutter-out',
+        stagger: { each: 0.07, from },
+      },
+      0
+    );
+  }
+  if (p.base) tl.set(p.base, { autoAlpha: 1 });
+  if (p.shutter) tl.set(p.shutter, { autoAlpha: 0 });
+  if (p.chars?.length) {
+    tl.to(
+      p.chars,
+      {
+        rotationX: 0,
+        opacity: 1,
+        duration: 1,
+        ease: 'shutter-out',
+        stagger: { each: 0.03, from },
+      },
+      0.3
+    );
+  }
+  if (p.lines?.length) {
+    tl.to(
+      p.lines,
+      { yPercent: 0, rotation: 0, duration: 1, ease: 'shutter-out', stagger: 0.08 },
+      0.45
+    );
+  }
+  if (p.capChars?.length) {
+    tl.to(
+      p.capChars,
+      {
+        opacity: 1,
+        yPercent: 0,
+        duration: 0.8,
+        ease: 'shutter-out',
+        stagger: { each: 0.012, from: 'center' },
+      },
+      0.65
+    );
+  }
+  if (p.caption) {
+    tl.to(p.caption, { filter: 'blur(0px)', duration: 0.9, ease: 'shutter-out' }, 0.65);
+  }
+  return tl;
 }
 
 function exit(p: SlideParts, dir: number) {
   const from = dir > 0 ? 'start' : 'end';
-  return (
-    gsap
-      .timeline()
-      .to(
-        p.chars,
-        {
-          rotationX: 95 * dir,
-          opacity: 0,
-          duration: 0.55,
-          ease: 'shutter-in',
-          stagger: { each: 0.02, from },
-        },
-        0
-      )
-      .to(
-        p.lines,
-        {
-          yPercent: -105 * dir,
-          rotation: -1.5 * dir,
-          duration: 0.5,
-          ease: 'shutter-in',
-          stagger: 0.05,
-        },
-        0
-      )
-      .to(
-        p.capChars,
-        { opacity: 0, duration: 0.3, ease: 'none', stagger: { each: 0.008, from: 'edges' } },
-        0
-      )
-      // The old picture sinks back and dims under the incoming slats.
-      .to(
-        p.base,
-        { scale: 1.12, filter: 'brightness(0.55)', duration: 1.3, ease: 'shutter-in-out' },
-        0
-      )
-  );
+  const tl = gsap.timeline();
+  if (p.chars?.length) {
+    tl.to(
+      p.chars,
+      {
+        rotationX: 95 * dir,
+        opacity: 0,
+        duration: 0.55,
+        ease: 'shutter-in',
+        stagger: { each: 0.02, from },
+      },
+      0
+    );
+  }
+  if (p.lines?.length) {
+    tl.to(
+      p.lines,
+      {
+        yPercent: -105 * dir,
+        rotation: -1.5 * dir,
+        duration: 0.5,
+        ease: 'shutter-in',
+        stagger: 0.05,
+      },
+      0
+    );
+  }
+  if (p.capChars?.length) {
+    tl.to(
+      p.capChars,
+      { opacity: 0, duration: 0.3, ease: 'none', stagger: { each: 0.008, from: 'edges' } },
+      0
+    );
+  }
+  if (p.base) {
+    tl.to(
+      p.base,
+      { scale: 1.12, filter: 'brightness(0.55)', duration: 1.3, ease: 'shutter-in-out' },
+      0
+    );
+  }
+  return tl;
 }
 
 function Chevron({ back }: { back?: boolean }) {
@@ -458,12 +474,14 @@ export default function ShutterSlider({
                 p.lineSplit = SplitText.create(p.copy, LINE_SPLIT);
                 p.lines = p.lineSplit.lines;
                 const shown = i === index && revealed;
-                gsap.set(
-                  p.lines,
-                  shown
-                    ? { yPercent: 0 }
-                    : { yPercent: 105, rotation: 2.5, transformOrigin: '0% 100%' }
-                );
+                if (p.lines?.length) {
+                  gsap.set(
+                    p.lines,
+                    shown
+                      ? { yPercent: 0 }
+                      : { yPercent: 105, rotation: 2.5, transformOrigin: '0% 100%' }
+                  );
+                }
               });
             }),
             150

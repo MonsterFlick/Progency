@@ -620,6 +620,9 @@ function drawMask(
   ctx.setTransform(scale, 0, 0, scale, 0, 0);
   ctx.fillStyle = "black";
   ctx.fillRect(0, 0, width, height);
+  if (!text) {
+    return;
+  }
   ctx.font = `${fontWeight} ${size}px ${fontFamily}`;
   if ("letterSpacing" in ctx) {
     ctx.letterSpacing = letterSpacing;
@@ -805,7 +808,9 @@ export function InkBackground({
     build();
     canvas.style.opacity = "1";
     if (!reduceMotion) {
-      bloom();
+      if (text) {
+        bloom();
+      }
       start();
     }
 

@@ -92,12 +92,6 @@ export const Meteors: React.FC<MeteorsProps> = ({
           animation-iteration-count: infinite;
           will-change: transform, opacity;
         }
-        @media (prefers-reduced-motion: reduce) {
-          .easyui-meteor-item {
-            animation: none !important;
-            display: none !important;
-          }
-        }
       `}</style>
 
       {meteorStyles.map((itemStyle, idx) => (

@@ -46,6 +46,8 @@ export default function HeroScrollZoom() {
   const cachedScrollableRef = useRef(1);
 
   const measureG = useCallback(() => {
+    // Only measure unscaled position when at the top of scroll
+    if (typeof window !== "undefined" && window.scrollY > 15 && gPosRef.current) return;
     const gEl = document.getElementById("hero-letter-g");
     if (!gEl) return;
 
@@ -114,33 +116,57 @@ export default function HeroScrollZoom() {
     const hintOpacity = Math.max(0, 1 - p * 9);
 
     // Direct GPU transform update with zero filter compositing overhead
-    if (zoomContainerRef.current) {
-      zoomContainerRef.current.style.transformOrigin = `${targetGx.toFixed(1)}px ${targetGy.toFixed(1)}px`;
-      zoomContainerRef.current.style.transform = `translate3d(${translateX.toFixed(2)}px, ${translateY.toFixed(2)}px, 0) scale(${scale.toFixed(3)})`;
-    }
-
-    if (skyRef.current) {
-      skyRef.current.style.opacity = `${skyOpacity.toFixed(3)}`;
-    }
-    if (mistRef.current) {
-      mistRef.current.style.opacity = `${skyOpacity.toFixed(3)}`;
-    }
-    if (meteorsRef.current) {
-      meteorsRef.current.style.opacity = `${skyOpacity.toFixed(3)}`;
-    }
-    if (lightBurstRef.current) {
-      lightBurstRef.current.style.opacity = `${lightBurstOpacity.toFixed(3)}`;
-    }
-    if (solidWhiteRef.current) {
-      solidWhiteRef.current.style.opacity = `${solidWhiteOpacity.toFixed(3)}`;
-    }
-    if (stickyViewportRef.current) {
-      stickyViewportRef.current.style.opacity = `${stageFadeOut.toFixed(3)}`;
-      stickyViewportRef.current.style.visibility = stageFadeOut <= 0.005 ? "hidden" : "visible";
-    }
-    if (hintRef.current) {
-      hintRef.current.style.opacity = `${hintOpacity.toFixed(3)}`;
-      hintRef.current.style.display = hintOpacity <= 0.01 ? "none" : "flex";
+    if (p <= 0.002) {
+      // Clean resting pose at the very start of the page
+      if (zoomContainerRef.current) {
+        zoomContainerRef.current.style.transformOrigin = "center center";
+        zoomContainerRef.current.style.transform = "translate3d(0px, 0px, 0) scale(1)";
+        zoomContainerRef.current.style.opacity = "1";
+        zoomContainerRef.current.style.visibility = "visible";
+      }
+      if (skyRef.current) skyRef.current.style.opacity = "1";
+      if (mistRef.current) mistRef.current.style.opacity = "1";
+      if (meteorsRef.current) meteorsRef.current.style.opacity = "1";
+      if (lightBurstRef.current) lightBurstRef.current.style.opacity = "0";
+      if (solidWhiteRef.current) solidWhiteRef.current.style.opacity = "0";
+      if (stickyViewportRef.current) {
+        stickyViewportRef.current.style.opacity = "1";
+        stickyViewportRef.current.style.visibility = "visible";
+      }
+      if (hintRef.current) {
+        hintRef.current.style.opacity = "1";
+        hintRef.current.style.display = "flex";
+      }
+    } else {
+      if (zoomContainerRef.current) {
+        zoomContainerRef.current.style.transformOrigin = `${targetGx.toFixed(1)}px ${targetGy.toFixed(1)}px`;
+        zoomContainerRef.current.style.transform = `translate3d(${translateX.toFixed(2)}px, ${translateY.toFixed(2)}px, 0) scale(${scale.toFixed(3)})`;
+        zoomContainerRef.current.style.opacity = "1";
+        zoomContainerRef.current.style.visibility = "visible";
+      }
+      if (skyRef.current) {
+        skyRef.current.style.opacity = `${skyOpacity.toFixed(3)}`;
+      }
+      if (mistRef.current) {
+        mistRef.current.style.opacity = `${skyOpacity.toFixed(3)}`;
+      }
+      if (meteorsRef.current) {
+        meteorsRef.current.style.opacity = `${skyOpacity.toFixed(3)}`;
+      }
+      if (lightBurstRef.current) {
+        lightBurstRef.current.style.opacity = `${lightBurstOpacity.toFixed(3)}`;
+      }
+      if (solidWhiteRef.current) {
+        solidWhiteRef.current.style.opacity = `${solidWhiteOpacity.toFixed(3)}`;
+      }
+      if (stickyViewportRef.current) {
+        stickyViewportRef.current.style.opacity = `${stageFadeOut.toFixed(3)}`;
+        stickyViewportRef.current.style.visibility = stageFadeOut <= 0.005 ? "hidden" : "visible";
+      }
+      if (hintRef.current) {
+        hintRef.current.style.opacity = `${hintOpacity.toFixed(3)}`;
+        hintRef.current.style.display = hintOpacity <= 0.01 ? "none" : "flex";
+      }
     }
 
     // Only update state when transition boundary crosses (eliminates 120fps React re-render churn)
@@ -190,6 +216,7 @@ export default function HeroScrollZoom() {
       <IntroLoader onComplete={handleIntroComplete} />
 
       <div
+        id="hero"
         ref={trackRef}
         className="relative z-30 w-full h-[220vh] pointer-events-none"
       >
@@ -263,7 +290,7 @@ export default function HeroScrollZoom() {
           </div>
 
           {/* Top-Right Ambient Effect Toggle Button */}
-          <div className="absolute top-6 right-6 z-30 pointer-events-auto flex items-center">
+          <div className="absolute top-6 right-6 z-40 pointer-events-auto flex items-center">
             <button
               type="button"
               onClick={() => setHeroEffect((prev) => (prev === "meteors" ? "wind" : "meteors"))}
@@ -291,7 +318,7 @@ export default function HeroScrollZoom() {
           <div
             ref={zoomContainerRef}
             suppressHydrationWarning
-            className="absolute inset-0 z-10 flex items-center justify-center pointer-events-none [contain:layout_style_paint] [will-change:transform]"
+            className="absolute inset-0 z-10 flex items-center justify-center pointer-events-none [will-change:transform]"
             style={{
               transformOrigin: "center center",
               transform: "translate3d(0px, 0px, 0) scale(1)",
@@ -301,14 +328,10 @@ export default function HeroScrollZoom() {
               {/* Fluid Ink Simulation Canvas (Mouse interactive fluid stir, curl, and gather) */}
               <div className="absolute inset-0 pointer-events-auto z-10">
                 <InkBackground
-                  text="PROGENCY"
+                  text=""
                   transparentPaper={true}
                   paused={inkPaused}
                   accent="#7DD3FC"
-                  fontFamily="var(--font-geist-sans), Inter, system-ui, sans-serif"
-                  fontWeight={800}
-                  letterSpacing="0.16em"
-                  textTransform="uppercase"
                   className="w-full h-full min-h-0"
                 />
               </div>
