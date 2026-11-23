@@ -1,6 +1,7 @@
 import HeroScrollZoom from "@/components/HeroScrollZoom";
 import { OurWorkHero } from "@/components/OurWorkHero";
-import TechWorkSectionLazy from "@/components/TechWorkSectionLazy";
+import OurWorkVertical from "@/components/OurWorkVertical";
+import TechWorkSection from "@/components/TechWorkSection";
 
 export default function Home() {
   return (
@@ -8,13 +9,14 @@ export default function Home() {
       {/* Stage 0: Cloud Sky & Letter 'G' Zoom Transition */}
       <HeroScrollZoom />
 
-      {/* Section 1: OUR WORK — 3D Spiral Ribbon & Final Grid Showcase */}
+      {/* Section 1: OUR WORK — Part 1 (3D Spiral Ribbon) & Part 2 (Vertical & Editorial Perspective Carousel) */}
       <div id="our-work" className="relative z-10 -mt-[100vh]">
         <OurWorkHero />
+        <OurWorkVertical />
       </div>
 
-      {/* Section 2: Tech Work Reel powered by PODIE Shutter Slider */}
-      <TechWorkSectionLazy />
+      {/* Section 2: TECH WORK — 3D Cylinder Carousel, Apple Blurred Video & Skiper28 3D Perspective Text */}
+      <TechWorkSection />
 
       {/* Section 3: Contact & Collaboration */}
       <footer

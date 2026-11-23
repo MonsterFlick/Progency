@@ -4,8 +4,7 @@ import React from 'react';
 import {
   Home,
   Sparkles,
-  Code2,
-  Play,
+  Code,
   Mail,
 } from 'lucide-react';
 
@@ -24,12 +23,7 @@ const DOCK_ITEMS = [
   },
   {
     title: 'Tech Work',
-    icon: <Code2 className='h-4 w-4' />,
-    href: '#tech-work',
-  },
-  {
-    title: 'Showreel',
-    icon: <Play className='h-4 w-4 fill-current' />,
+    icon: <Code className='h-4 w-4' />,
     href: '#tech-work',
   },
   {

@@ -78,16 +78,17 @@ export function TechWorkShowcase() {
       className="dark relative w-full bg-[#070709] text-[#f4f1ea] border-t border-white/5 pt-20 pb-28 overflow-hidden select-none"
       aria-label="Engineering and Tech Work"
     >
-      {/* Background ambient radial gradients */}
+      {/* Ambient Glow */}
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute inset-0 overflow-hidden opacity-40"
+        className="pointer-events-none absolute inset-0 overflow-hidden opacity-30"
       >
-        <div className="absolute top-1/4 -left-40 h-[500px] w-[500px] rounded-full bg-cyan-600/15 blur-[140px]" />
-        <div className="absolute bottom-1/4 -right-40 h-[500px] w-[500px] rounded-full bg-amber-500/10 blur-[150px]" />
+        <div className="absolute top-1/4 -left-40 h-[650px] w-[650px] rounded-full bg-cyan-600/15 blur-[160px]" />
+        <div className="absolute bottom-1/4 -right-40 h-[650px] w-[650px] rounded-full bg-amber-500/10 blur-[160px]" />
       </div>
 
-      <div className="relative mx-auto max-w-7xl px-6 md:px-12">
+      {/* Main Full-Bleed Content Wrapper */}
+      <div className="relative w-full px-6 md:px-14 lg:px-20">
         {/* Section Header */}
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 pb-10 border-b border-white/10">
           <div>
@@ -95,7 +96,7 @@ export function TechWorkShowcase() {
               <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
               Production Engineering & Systems
             </div>
-            <h2 className="text-3xl md:text-5xl font-medium tracking-tight text-white font-sans">
+            <h2 className="text-3xl sm:text-4xl md:text-6xl font-medium tracking-tight text-white font-sans">
               Tech Work & Systems
             </h2>
           </div>
@@ -106,10 +107,11 @@ export function TechWorkShowcase() {
               <button
                 type="button"
                 onClick={() => setViewMode("spatial")}
-                className={`flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-mono tracking-wider transition-all cursor-pointer ${viewMode === "spatial"
+                className={`flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-mono tracking-wider transition-all cursor-pointer ${
+                  viewMode === "spatial"
                     ? "bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 shadow-lg shadow-cyan-500/10 font-semibold"
                     : "text-neutral-400 hover:text-white"
-                  }`}
+                }`}
               >
                 <Orbit className="h-3.5 w-3.5" />
                 <span>3D SPATIAL DECK</span>
@@ -117,10 +119,11 @@ export function TechWorkShowcase() {
               <button
                 type="button"
                 onClick={() => setViewMode("shutter")}
-                className={`flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-mono tracking-wider transition-all cursor-pointer ${viewMode === "shutter"
+                className={`flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-mono tracking-wider transition-all cursor-pointer ${
+                  viewMode === "shutter"
                     ? "bg-amber-500/20 text-amber-300 border border-amber-500/40 shadow-lg shadow-amber-500/10 font-semibold"
                     : "text-neutral-400 hover:text-white"
-                  }`}
+                }`}
               >
                 <Sliders className="h-3.5 w-3.5" />
                 <span>SHUTTER SLIDER</span>
@@ -133,25 +136,22 @@ export function TechWorkShowcase() {
           </div>
         </div>
 
-          {/* View Mode 1: 3D Spatial Holographic Carousel */}
-          <div className={`mt-8 ${viewMode === "spatial" ? "block" : "hidden"}`}>
-            <SpatialHoloCarousel onOpenReel={setActiveVideo} />
-          </div>
+        {/* View Mode 1: 3D Spatial Holographic Carousel - Unboxed Edge-to-Edge */}
+        <div className={`mt-8 w-full ${viewMode === "spatial" ? "block" : "hidden"}`}>
+          <SpatialHoloCarousel onOpenReel={setActiveVideo} />
+        </div>
 
-          {/* View Mode 2: PODIE Tween-UI Shutter Slider Component */}
-          <div
-            className={`mt-8 rounded-2xl overflow-hidden border border-white/10 bg-[#0d0d11]/80 backdrop-blur-sm shadow-2xl ${viewMode === "shutter" ? "block" : "hidden"
-              }`}
-          >
-            <ShutterSlider
-              slides={TECH_SLIDES}
-              autoplay={7}
-              className="dark bg-transparent text-[#f4f1ea] py-14 md:py-20"
-            />
-          </div>
+        {/* View Mode 2: PODIE Tween-UI Shutter Slider Component - Unboxed */}
+        <div className={`mt-8 w-full ${viewMode === "shutter" ? "block" : "hidden"}`}>
+          <ShutterSlider
+            slides={TECH_SLIDES}
+            autoplay={7}
+            className="dark bg-transparent text-[#f4f1ea] py-14 md:py-20"
+          />
+        </div>
 
-          {/* Project Technical Architecture Badges */}
-          <div className="mt-10 grid grid-cols-1 md:grid-cols-3 gap-4">
+        {/* Project Technical Architecture Badges - Full Bleed Edge-to-Edge */}
+        <div className="mt-14 grid grid-cols-1 md:grid-cols-3 gap-6">
             {PROJECT_META.map((item) => (
               <div
                 key={item.name}

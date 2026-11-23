@@ -289,31 +289,6 @@ export default function HeroScrollZoom() {
             )}
           </div>
 
-          {/* Top-Right Ambient Effect Toggle Button */}
-          <div className="absolute top-6 right-6 z-40 pointer-events-auto flex items-center">
-            <button
-              type="button"
-              onClick={() => setHeroEffect((prev) => (prev === "meteors" ? "wind" : "meteors"))}
-              className="group flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-black/30 hover:bg-black/50 border border-white/20 hover:border-white/40 text-white text-xs font-medium backdrop-blur-md transition-all shadow-lg active:scale-95 cursor-pointer"
-              aria-label={`Toggle background effect (currently ${heroEffect})`}
-            >
-              {heroEffect === "meteors" ? (
-                <>
-                  <Sparkles className="w-3.5 h-3.5 text-sky-300 transition-transform group-hover:rotate-12" />
-                  <span>Meteors</span>
-                </>
-              ) : (
-                <>
-                  <Wind className="w-3.5 h-3.5 text-sky-300 transition-transform group-hover:translate-x-0.5" />
-                  <span>Wind</span>
-                </>
-              )}
-              <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-white/10 text-white/75 group-hover:bg-white/20 transition-colors">
-                {heroEffect === "meteors" ? "Switch to Wind" : "Switch to Meteors"}
-              </span>
-            </button>
-          </div>
-
           {/* Hero Text Zoom Container - Hardware accelerated, zooms directly into 'G' with 0 lag */}
           <div
             ref={zoomContainerRef}

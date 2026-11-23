@@ -556,9 +556,9 @@ export default function SpatialHoloCarousel({ onOpenReel }: SpatialHoloCarouselP
   const activeProject = HOLO_PROJECTS[activeIndex];
 
   return (
-    <div className="relative w-full rounded-3xl overflow-hidden border border-white/10 bg-[#07080d] shadow-2xl select-none">
-      {/* Top Holographic Navigation Bar */}
-      <div className="flex flex-wrap items-center justify-between gap-4 px-6 py-4 bg-[#0a0c14]/85 border-b border-white/10 backdrop-blur-md">
+    <div className="relative w-full select-none bg-transparent">
+      {/* Top Holographic Navigation Bar - Full Bleed */}
+      <div className="flex flex-wrap items-center justify-between gap-4 px-6 md:px-14 lg:px-20 py-4 border-b border-white/10 bg-black/20 backdrop-blur-sm">
         <div className="flex items-center gap-3">
           <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-white/5 border border-white/10 text-xs font-mono">
             <span
@@ -603,21 +603,21 @@ export default function SpatialHoloCarousel({ onOpenReel }: SpatialHoloCarouselP
         </div>
       </div>
 
-      {/* 3D WebGL Canvas Viewport */}
+      {/* 3D WebGL Canvas Viewport - Unboxed, High Impact */}
       <div
         ref={containerRef}
-        className="relative w-full h-[420px] sm:h-[480px] md:h-[540px] cursor-grab active:cursor-grabbing overflow-hidden"
+        className="relative w-full h-[540px] sm:h-[620px] md:h-[700px] cursor-grab active:cursor-grabbing overflow-hidden"
       >
         <canvas ref={canvasRef} className="w-full h-full block" />
 
         {/* Hint Pill */}
-        <div className="pointer-events-none absolute top-4 left-6 z-10 flex items-center gap-2 px-3 py-1.5 rounded-full bg-black/60 backdrop-blur-md border border-white/10 text-[11px] font-mono text-neutral-400">
+        <div className="pointer-events-none absolute top-4 left-6 md:left-14 z-10 flex items-center gap-2 px-3 py-1.5 rounded-full bg-black/60 backdrop-blur-md border border-white/10 text-[11px] font-mono text-neutral-400">
           <Sparkles className="h-3.5 w-3.5 text-cyan-400" />
           <span>Drag or swipe to orbit • Click center card to expand reel</span>
         </div>
 
         {/* Floating Center Card Action CTA */}
-        <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-10 flex items-center gap-3">
+        <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-10 flex items-center gap-3">
           <button
             type="button"
             onClick={() => onOpenReel(activeProject.video)}
@@ -633,7 +633,7 @@ export default function SpatialHoloCarousel({ onOpenReel }: SpatialHoloCarouselP
         </div>
 
         {/* Prev / Next Circular Navigation Arrows */}
-        <div className="absolute inset-y-0 left-4 z-10 flex items-center pointer-events-none">
+        <div className="absolute inset-y-0 left-4 md:left-8 z-10 flex items-center pointer-events-none">
           <button
             type="button"
             onClick={goPrev}
@@ -644,7 +644,7 @@ export default function SpatialHoloCarousel({ onOpenReel }: SpatialHoloCarouselP
           </button>
         </div>
 
-        <div className="absolute inset-y-0 right-4 z-10 flex items-center pointer-events-none">
+        <div className="absolute inset-y-0 right-4 md:right-8 z-10 flex items-center pointer-events-none">
           <button
             type="button"
             onClick={goNext}
@@ -656,9 +656,9 @@ export default function SpatialHoloCarousel({ onOpenReel }: SpatialHoloCarouselP
         </div>
       </div>
 
-      {/* Active Project Engineering Telemetry Dock */}
-      <div className="p-6 md:p-8 bg-[#090b12] border-t border-white/10">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+      {/* Active Project Engineering Telemetry Dock - Full Bleed */}
+      <div className="px-6 md:px-14 lg:px-20 py-8 border-t border-white/10 bg-transparent">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
           {/* Left Column: Project Overview */}
           <div className="lg:col-span-7">
             <div className="flex items-center gap-3 mb-2">
@@ -677,11 +677,11 @@ export default function SpatialHoloCarousel({ onOpenReel }: SpatialHoloCarouselP
               </span>
             </div>
 
-            <h3 className="text-2xl md:text-3xl font-bold tracking-tight text-white mb-2">
+            <h3 className="text-2xl md:text-4xl font-bold tracking-tight text-white mb-2">
               {activeProject.name}
             </h3>
 
-            <p className="text-sm leading-relaxed text-neutral-300 font-sans mb-4">
+            <p className="text-sm md:text-base leading-relaxed text-neutral-300 font-sans mb-4 max-w-2xl">
               {activeProject.description}
             </p>
 
@@ -709,7 +709,7 @@ export default function SpatialHoloCarousel({ onOpenReel }: SpatialHoloCarouselP
                   {m.label}
                 </span>
                 <span
-                  className="text-lg md:text-xl font-bold font-mono tracking-tight mt-1"
+                  className="text-lg md:text-2xl font-bold font-mono tracking-tight mt-1"
                   style={{ color: activeProject.accent }}
                 >
                   {m.value}

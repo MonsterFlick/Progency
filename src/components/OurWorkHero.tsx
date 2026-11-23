@@ -1,7 +1,8 @@
 "use client";
 
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import * as THREE from "three";
+import { X } from "lucide-react";
 
 interface ShowcaseItem {
   title: string;
@@ -29,7 +30,7 @@ const SHOWCASE_ITEMS: ShowcaseItem[] = [
   {
     title: "YEMEN CRISIS",
     category: "CINEMATIC DOCUMENTARY",
-    image: "/assets/images/optimized/dock/yemen_crisis_thumb.webp",
+    image: "/assets/images/video_posters/yemen_crisis_thumb.jpg",
     dockImage: "/assets/images/optimized/dock/yemen_crisis_thumb.webp",
     video: "/assets/videos/yemen_crisis.mp4",
   },
@@ -43,7 +44,7 @@ const SHOWCASE_ITEMS: ShowcaseItem[] = [
   {
     title: "PODCAST PREVIEW",
     category: "STUDIO PODCAST PRODUCTION",
-    image: "/assets/images/optimized/dock/podcast_preview_thumb.webp",
+    image: "/assets/images/video_posters/podcast_preview_thumb.jpg",
     dockImage: "/assets/images/optimized/dock/podcast_preview_thumb.webp",
     video: "/assets/videos/podcast_preview.mp4",
   },
@@ -57,7 +58,7 @@ const SHOWCASE_ITEMS: ShowcaseItem[] = [
   {
     title: "FREEFLOW LOGO",
     category: "3D LOGO ANIMATION & IDENTITY",
-    image: "/assets/images/optimized/dock/freeflow_logo_thumb.webp",
+    image: "/assets/images/video_posters/freeflow_logo_thumb.jpg",
     dockImage: "/assets/images/optimized/dock/freeflow_logo_thumb.webp",
     video: "/assets/videos/freeflow_logo.mp4",
   },
@@ -101,18 +102,31 @@ interface CardItem {
 }
 
 export function OurWorkHero() {
+  const [activePreviewModal, setActivePreviewModal] = useState<ShowcaseItem | null>(null);
   const trackRef = useRef<HTMLDivElement>(null);
   const stageRef = useRef<HTMLElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const l1Ref = useRef<HTMLDivElement>(null);
-  const l2Ref = useRef<HTMLDivElement>(null);
   const capRef = useRef<HTMLDivElement>(null);
   const glowRef = useRef<HTMLDivElement>(null);
   const crossRef = useRef<HTMLDivElement>(null);
   const ruleRef = useRef<HTMLDivElement>(null);
-  const hintRef = useRef<HTMLDivElement>(null);
-  const pagerRef = useRef<HTMLDivElement>(null);
   const nameRef = useRef<HTMLDivElement>(null);
+  const gridLabelsRef = useRef<HTMLDivElement>(null);
+  const cardLabelsRef = useRef<(HTMLDivElement | null)[]>([]);
+
+  // Close modal on Escape
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        setActivePreviewModal(null);
+      }
+    };
+    if (activePreviewModal) {
+      window.addEventListener("keydown", handleKeyDown);
+      return () => window.removeEventListener("keydown", handleKeyDown);
+    }
+  }, [activePreviewModal]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -439,22 +453,20 @@ export function OurWorkHero() {
     function render() {
       const pp = p;
 
-      // Headline runs right across the page in opposite directions
-      const rise = 1 - out(span(pp, 0, 0.12));
-      const run = mix(-50, 76, span(pp, 0, 0.58));
-      if (l1Ref.current) l1Ref.current.style.transform = `translate3d(${run.toFixed(2)}vw,${(rise * 34).toFixed(2)}vh,0)`;
-      if (l2Ref.current) l2Ref.current.style.transform = `translate3d(${(-run).toFixed(2)}vw,${(rise * 34).toFixed(2)}vh,0)`;
-
-      const capA = 1 - span(pp, 0.52, 0.57);
+      // Title stays DEAD-CENTER in the viewport!
+      const titleOpacity = 1 - span(pp, 0.62, 0.82);
+      const titleScale = mix(1, 0.9, span(pp, 0, 0.65));
+      if (l1Ref.current) {
+        l1Ref.current.style.transform = `translate(-50%, -50%) scale(${titleScale.toFixed(3)})`;
+        l1Ref.current.style.opacity = `${titleOpacity.toFixed(3)}`;
+      }
       if (capRef.current) {
-        capRef.current.style.opacity = `${capA.toFixed(3)}`;
-        capRef.current.style.transform = `translate(-50%,calc(-50% + ${(rise * 34).toFixed(2)}vh))`;
+        capRef.current.style.transform = `translate(-50%, calc(-50% + 4.6em)) scale(${titleScale.toFixed(3)})`;
+        capRef.current.style.opacity = `${titleOpacity.toFixed(3)}`;
       }
 
       const intro = 1 - span(pp, 0, 0.05);
       const introStr = `${intro.toFixed(3)}`;
-      if (hintRef.current) hintRef.current.style.opacity = introStr;
-      if (pagerRef.current) pagerRef.current.style.opacity = introStr;
       if (crossRef.current) crossRef.current.style.opacity = introStr;
       if (glowRef.current) glowRef.current.style.opacity = introStr;
 
@@ -486,34 +498,81 @@ export function OurWorkHero() {
         }
       }
 
+      // Position asset title labels directly on the grid cards (bottom-left corner)
+      if (gridLabelsRef.current) {
+        const gridProgress = span(pp, 0.82, 0.94);
+        gridLabelsRef.current.style.opacity = `${gridProgress.toFixed(3)}`;
+        if (gridProgress > 0) {
+          for (const c of cards) {
+            const el = cardLabelsRef.current[c.i];
+            if (el && c.rect) {
+              const g = c.rect;
+              // Align to bottom-left corner inside the card boundary
+              const screenX = ((g.x - g.w * 0.46) / g.vw + 0.5) * W;
+              const screenY = (0.5 - (g.y - g.h * 0.44) / g.vh) * H;
+              el.style.left = `${screenX.toFixed(1)}px`;
+              el.style.top = `${screenY.toFixed(1)}px`;
+            }
+          }
+        }
+      }
+
       renderer.render(scene, camera);
     }
 
-    /* ---------- hover ---------- */
+    /* ---------- 3D hover & click to preview ---------- */
     const nameEl = nameRef.current;
+    const raycaster = new THREE.Raycaster();
+    const mouse = new THREE.Vector2();
+
     const handlePointerMove = (e: PointerEvent) => {
+      mouse.x = (e.clientX / W) * 2 - 1;
+      mouse.y = -(e.clientY / H) * 2 + 1;
+      raycaster.setFromCamera(mouse, camera);
+
+      const visibleMeshes = cards.filter((c) => c.mesh.visible).map((c) => c.mesh);
+      const intersects = raycaster.intersectObjects(visibleMeshes);
+
       let hit: CardItem | null = null;
-      if (p > 0.86) {
-        const nx = e.clientX / W - 0.5;
-        const ny = 0.5 - e.clientY / H;
-        for (const c of cards) {
-          const g = c.rect;
-          if (!g) continue;
-          const x = nx * g.vw;
-          const y = ny * g.vh;
-          if (Math.abs(x - g.x) < g.w / 2 && Math.abs(y - g.y) < g.h / 2) hit = c;
-        }
+      if (intersects.length > 0) {
+        const hitMesh = intersects[0].object;
+        hit = cards.find((c) => c.mesh === hitMesh) || null;
       }
+
+      stage.style.cursor = hit ? "pointer" : "default";
+
       if (nameEl) {
         nameEl.style.opacity = hit ? "1" : "0";
         if (hit) {
-          nameEl.innerHTML = `<div><div style="font-weight:600;font-size:12px;color:#fff">${hit.title}</div><div style="font-size:10px;color:rgba(255,255,255,0.65);letter-spacing:0.08em;margin-top:2px">${hit.category}</div></div>`;
+          nameEl.innerHTML = `
+            <div style="pointer-events:none;text-align:left;">
+              <div style="font-weight:700;font-size:18px;color:#ffffff;letter-spacing:0.02em;text-shadow:0 2px 14px rgba(0,0,0,0.95);line-height:1.2;text-transform:uppercase;">${hit.title}</div>
+              <div style="font-size:11.5px;color:rgba(255,255,255,0.8);letter-spacing:0.06em;margin-top:3px;text-shadow:0 1px 6px rgba(0,0,0,0.95);font-family:monospace;text-transform:uppercase;">${hit.category}</div>
+            </div>
+          `;
           nameEl.style.transform = `translate(${e.clientX + 14}px,${e.clientY + 16}px)`;
         }
       }
     };
 
+    const handleStageClick = (e: MouseEvent) => {
+      mouse.x = (e.clientX / W) * 2 - 1;
+      mouse.y = -(e.clientY / H) * 2 + 1;
+      raycaster.setFromCamera(mouse, camera);
+
+      const visibleMeshes = cards.filter((c) => c.mesh.visible).map((c) => c.mesh);
+      const intersects = raycaster.intersectObjects(visibleMeshes);
+      if (intersects.length > 0) {
+        const hitMesh = intersects[0].object;
+        const hit = cards.find((c) => c.mesh === hitMesh);
+        if (hit) {
+          setActivePreviewModal(SHOWCASE_ITEMS[hit.i]);
+        }
+      }
+    };
+
     stage.addEventListener("pointermove", handlePointerMove);
+    stage.addEventListener("click", handleStageClick);
 
     /* ---------- loop ---------- */
     function loop() {
@@ -551,6 +610,7 @@ export function OurWorkHero() {
       window.removeEventListener("resize", updateTrackMetrics);
       window.removeEventListener("scroll", readScroll);
       stage.removeEventListener("pointermove", handlePointerMove);
+      stage.removeEventListener("click", handleStageClick);
 
       cards.forEach((c) => {
         if (c.v) {
@@ -598,46 +658,40 @@ export function OurWorkHero() {
         }
         .vante-hl {
           position: absolute;
-          left: 0;
-          right: 0;
-          font-weight: 400;
-          font-size: clamp(40px, 6.7vw, 130px);
+          left: 50%;
+          top: 50%;
+          transform: translate(-50%, -50%);
+          font-weight: 700;
+          font-size: clamp(48px, 9.5vw, 150px);
           line-height: 1;
-          letter-spacing: -0.055em;
+          letter-spacing: -0.04em;
           white-space: nowrap;
           text-align: center;
-          will-change: transform;
+          will-change: transform, opacity;
           color: var(--ink);
+          z-index: 2;
+          pointer-events: none;
         }
-        #vante-l1 {
-          top: calc(50% - 0.98em);
-        }
-        #vante-l2 {
-          top: calc(50% + 0.03em);
-        }
-        #vante-l1 span, #vante-l2 span {
+        .vante-hl span {
           display: inline-block;
-        }
-        #vante-l1 span {
-          margin-right: 15vw;
-        }
-        #vante-l2 span {
-          margin-left: 15vw;
+          margin: 0 !important;
         }
         #vante-cap {
           position: absolute;
           left: 50%;
           top: 50%;
-          transform: translate(-50%, -50%);
-          width: 15em;
+          transform: translate(-50%, calc(-50% + 4.6em));
           text-align: center;
-          font-size: clamp(9px, 0.74vw, 13px);
+          font-size: clamp(10px, 0.8vw, 13px);
           font-weight: 500;
+          font-family: 'IBM Plex Mono', monospace;
           line-height: 1.3;
-          letter-spacing: 0.03em;
+          letter-spacing: 0.12em;
           text-transform: uppercase;
-          color: var(--ink);
+          color: var(--mid);
           pointer-events: none;
+          z-index: 2;
+          white-space: nowrap;
         }
         #vante-gl {
           position: absolute;
@@ -645,40 +699,6 @@ export function OurWorkHero() {
           width: 100%;
           height: 100%;
           display: block;
-        }
-        .vante-top {
-          position: absolute;
-          left: 32px;
-          right: 32px;
-          top: 26px;
-          display: flex;
-          align-items: center;
-          justify-content: flex-start;
-          pointer-events: none;
-          z-index: 10;
-        }
-        .vante-acts {
-          margin-left: auto;
-          display: flex;
-          align-items: center;
-          gap: 7px;
-          pointer-events: auto;
-        }
-        #vante-pager {
-          display: flex;
-          margin: -26px 0 0 28px;
-          pointer-events: auto;
-        }
-        #vante-pager span {
-          display: grid;
-          place-items: center;
-          width: 44px;
-          height: 50px;
-          border: 1px solid var(--line);
-          border-top: 0;
-          margin-left: -1px;
-          font: 400 11px 'IBM Plex Mono', monospace;
-          color: var(--mid);
         }
         #vante-glow {
           position: absolute;
@@ -710,107 +730,6 @@ export function OurWorkHero() {
           padding: 0 0.3em;
           line-height: 1.2;
         }
-        .vante-logo {
-          display: flex;
-          align-items: center;
-          gap: 9px;
-          font-size: 19px;
-          font-weight: 600;
-          letter-spacing: 0.09em;
-          color: var(--ink);
-        }
-        .vante-logo svg {
-          width: 22px;
-          height: 18px;
-          fill: var(--ink);
-        }
-        .vante-acts a {
-          display: flex;
-          align-items: center;
-          gap: 9px;
-          height: 32px;
-          padding: 0 15px;
-          border: 1px solid rgba(244, 241, 234, 0.55);
-          border-radius: 99px;
-          color: var(--ink);
-          text-decoration: none;
-          font-size: 12px;
-          font-weight: 500;
-          letter-spacing: 0.06em;
-          transition: background 0.2s, color 0.2s;
-        }
-        .vante-acts a:hover {
-          background: var(--ink);
-          color: var(--bg);
-        }
-        .vante-acts a i {
-          display: block;
-          width: 6px;
-          height: 6px;
-          border-radius: 50%;
-          background: currentColor;
-          font-style: normal;
-        }
-        .vante-acts a b {
-          display: block;
-          width: 13px;
-          height: 7px;
-          border-top: 1px solid currentColor;
-          border-bottom: 1px solid currentColor;
-        }
-        #vante-hint {
-          position: absolute;
-          left: 50%;
-          top: 33px;
-          transform: translateX(-50%);
-          font: 400 11.5px 'IBM Plex Mono', monospace;
-          letter-spacing: 0.06em;
-          color: var(--ink);
-          padding-bottom: 6px;
-          border-bottom: 1px solid var(--line);
-          pointer-events: none;
-          z-index: 10;
-        }
-        .vante-bot {
-          position: absolute;
-          left: 32px;
-          right: 32px;
-          bottom: 26px;
-          display: grid;
-          grid-template-columns: 1fr auto 1fr;
-          align-items: end;
-          font-size: 12.5px;
-          line-height: 1.35;
-          pointer-events: none;
-          z-index: 10;
-        }
-        .vante-bot p {
-          color: var(--ink);
-          max-width: 21em;
-        }
-        .vante-bot .vante-mid {
-          font: 400 11.5px 'IBM Plex Mono', monospace;
-          letter-spacing: 0.06em;
-        }
-        .vante-bot .vante-mid s {
-          text-decoration: none;
-          color: var(--mid);
-          margin: 0 0.9em;
-        }
-        .vante-bot .vante-r {
-          justify-self: end;
-          display: flex;
-          gap: 12px;
-          align-items: center;
-          font: 400 11.5px 'IBM Plex Mono', monospace;
-          letter-spacing: 0.06em;
-        }
-        .vante-bot .vante-r:after {
-          content: "";
-          width: 22px;
-          height: 1px;
-          background: var(--ink);
-        }
         #vante-rule {
           position: absolute;
           left: 3.5vw;
@@ -827,106 +746,121 @@ export function OurWorkHero() {
           position: absolute;
           left: 0;
           top: 0;
-          padding: 6px 11px;
-          background: var(--ink);
-          color: var(--bg);
-          border-radius: 99px;
-          font-size: 11.5px;
-          font-weight: 600;
-          letter-spacing: 0.04em;
           pointer-events: none;
           opacity: 0;
           transition: opacity 0.16s;
           white-space: nowrap;
-          z-index: 20;
-        }
-        @media (max-width: 760px) {
-          .vante-top {
-            left: 18px;
-            right: 18px;
-            top: 18px;
-          }
-          .vante-bot {
-            left: 18px;
-            right: 18px;
-            bottom: 18px;
-            grid-template-columns: 1fr auto;
-          }
-          .vante-bot .vante-mid {
-            display: none;
-          }
-          #vante-hint, #vante-pager {
-            display: none;
-          }
-          .vante-bot p {
-            max-width: 17em;
-            font-size: 11px;
-          }
+          z-index: 30;
         }
       `}</style>
 
       <div id="track" ref={trackRef} className="vante-track">
         <main className="stage vante-stage" id="stage" ref={stageRef}>
-          <h1 aria-label="Craft in motion">
-            <div className="hl vante-hl" id="l1" ref={l1Ref} aria-hidden="true">
-              <span>CRAFT IN</span>
-            </div>
-            <div className="hl vante-hl" id="l2" ref={l2Ref} aria-hidden="true">
-              <span>MOTION</span>
+          {/* Centered PROGENCY Title */}
+          <h1 aria-label="Progency">
+            <div className="hl vante-hl" id="vante-l1" ref={l1Ref}>
+              <span>PROGENCY</span>
             </div>
           </h1>
 
-          <div id="cap" ref={capRef}>
-            Exploring ideas through daily design practice.
+          <div id="vante-cap" ref={capRef}>
+            CREATIVE PRODUCTION / MOTION / 3D
           </div>
 
-          <div id="glow" ref={glowRef}></div>
-          <div id="cross" ref={crossRef}>
+          <div id="vante-glow" ref={glowRef}></div>
+          <div id="vante-cross" ref={crossRef}>
             <i>+</i>
           </div>
-          <div id="rule" ref={ruleRef}></div>
+          <div id="vante-rule" ref={ruleRef}></div>
 
-          <canvas id="gl" ref={canvasRef}></canvas>
+          <canvas id="vante-gl" ref={canvasRef}></canvas>
 
-          <div id="hint" ref={hintRef}>
-            START A PROJECT &nbsp;→
+          {/* Grid Asset Titles Overlay - Simple white text, NO chip, toward left corner, bit big */}
+          <div
+            ref={gridLabelsRef}
+            className="pointer-events-none absolute inset-0 z-20 transition-opacity duration-300"
+            style={{ opacity: 0 }}
+          >
+            {SHOWCASE_ITEMS.map((item, idx) => (
+              <div
+                key={item.title}
+                ref={(el) => {
+                  cardLabelsRef.current[idx] = el;
+                }}
+                className="absolute flex flex-col items-start pointer-events-auto cursor-pointer select-none text-left"
+                style={{ transform: "translateY(-100%)" }}
+                onClick={() => setActivePreviewModal(item)}
+              >
+                <span className="text-white text-base sm:text-lg font-bold tracking-tight uppercase leading-snug drop-shadow-[0_2px_10px_rgba(0,0,0,0.95)]">
+                  {item.title}
+                </span>
+                <span className="text-white/80 text-[11px] font-mono tracking-wider uppercase drop-shadow-[0_1px_5px_rgba(0,0,0,0.95)] mt-0.5">
+                  {item.category}
+                </span>
+              </div>
+            ))}
           </div>
 
-          <header className="top vante-top">
-            <div className="logo vante-logo">
-              <svg viewBox="0 0 22 18">
-                <path d="M11 0l11 18h-6.200L11 9.600 6.200 18H0z" />
-              </svg>
-              PROGENCY
-            </div>
-            <div id="pager" ref={pagerRef}>
-              <span>←</span>
-              <span>→</span>
-            </div>
-            <nav className="acts vante-acts">
-              <a href="#contact">
-                <i></i>LET&apos;S TALK
-              </a>
-              <a href="#menu">
-                MENU<b></b>
-              </a>
-            </nav>
-          </header>
+          {/* Top navigation removed per user request */}
 
-          <footer className="bot vante-bot">
-            <p>
-              Concepts, explorations and interface experiments shared openly as part of our creative
-              process.
-            </p>
-            <div className="mid vante-mid">
-              VISUALS<s>/</s>FILM<s>/</s>MUSIC<s>/</s>EXPERIMENTS
-            </div>
-            <div className="r vante-r">VIEW SHOWREEL</div>
-          </footer>
-
-          <div id="name" ref={nameRef}></div>
+          <div id="vante-name" ref={nameRef}></div>
         </main>
       </div>
+
+      {/* Fullscreen Asset Preview Modal */}
+      {activePreviewModal && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/92 backdrop-blur-md p-4"
+          onClick={() => setActivePreviewModal(null)}
+        >
+          <div
+            className="relative w-full max-w-4xl rounded-2xl overflow-hidden border border-[rgba(244,241,234,0.25)] bg-[#0a0a0b] shadow-2xl flex flex-col"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Modal Header */}
+            <div className="flex items-center justify-between px-5 py-3.5 bg-[#111113] border-b border-[rgba(244,241,234,0.12)]">
+              <div>
+                <span className="text-sm font-semibold tracking-wide text-[#f4f1ea]">
+                  {activePreviewModal.title}
+                </span>
+                <span className="ml-3 text-[10px] font-mono tracking-widest uppercase text-neutral-400">
+                  {activePreviewModal.category}
+                </span>
+              </div>
+              <button
+                type="button"
+                onClick={() => setActivePreviewModal(null)}
+                className="p-1.5 rounded-full text-neutral-400 hover:text-white hover:bg-white/10 transition-colors cursor-pointer"
+                aria-label="Close modal"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+
+            {/* Video or Image Preview */}
+            <div className="relative aspect-video w-full bg-black overflow-hidden flex items-center justify-center">
+              {activePreviewModal.video ? (
+                <video
+                  src={activePreviewModal.video}
+                  autoPlay
+                  controls
+                  playsInline
+                  className="w-full h-full object-contain"
+                />
+              ) : (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={activePreviewModal.image}
+                  alt={activePreviewModal.title}
+                  className="w-full h-full object-contain"
+                />
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </section>
   );
 }
