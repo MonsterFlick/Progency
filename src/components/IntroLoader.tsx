@@ -1,7 +1,7 @@
 'use client';
 
-import React, { useEffect, useState, useCallback, useRef } from 'react';
-import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
+import React, { useEffect, useState, useCallback, useRef, useSyncExternalStore } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { RotateCw, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { motionTransitions } from '@/lib/motion-tokens';
@@ -31,22 +31,23 @@ export interface IntroLoaderProps extends React.HTMLAttributes<HTMLDivElement> {
 }
 
 const DEFAULT_GREETINGS: GreetingItem[] = [
-  { text: 'Hello', lang: 'EN' },
-  { text: 'Hola', lang: 'ES' },
-  { text: 'Bonjour', lang: 'FR' },
-  { text: 'Ciao', lang: 'IT' },
-  { text: 'こんにちは', lang: 'JA' },
-  { text: 'नमस्कार', lang: 'HI' },
-  { text: 'Progency', lang: '★' },
+  { text: 'नमस्ते' },
+  { text: 'नमस्कार' },
+  { text: 'નમસ્તે' },
+  { text: 'ਸਤ ਸ੍ਰੀ ਅਕਾਲ' },
+  { text: 'নমস্কার' },
+  { text: 'வணக்கம்' },
+  { text: 'నమస్కారం' },
+  { text: 'Progency' },
 ];
 
 export const IntroLoader: React.FC<IntroLoaderProps> = ({
   greetings = DEFAULT_GREETINGS,
   onComplete,
   fullScreen = true,
-  intervalMs = 360,
+  intervalMs = 310,
   showProgress = true,
-  showLangBadge = true,
+  showLangBadge = false,
   allowSkip = true,
   speedMultiplier = 1,
   className,
@@ -59,16 +60,16 @@ export const IntroLoader: React.FC<IntroLoaderProps> = ({
   const [greetingIndex, setGreetingIndex] = useState(0);
   const [stage, setStage] = useState<'greeting' | 'done'>('greeting');
   const [cycleKey, setCycleKey] = useState(0);
-  const [mounted, setMounted] = useState(false);
-  const reducedMotion = useReducedMotion();
+  const prefersReducedMotion = useSyncExternalStore(
+    (cb) => {
+      const mq = window.matchMedia('(prefers-reduced-motion: reduce)');
+      mq.addEventListener('change', cb);
+      return () => mq.removeEventListener('change', cb);
+    },
+    () => window.matchMedia('(prefers-reduced-motion: reduce)').matches,
+    () => false
+  );
   const containerRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-
-  // Safe SSR-compatible motion reduction check (prevents hydration mismatch)
-  const shouldReduceMotion = mounted ? Boolean(reducedMotion) : false;
 
   const adjustedInterval = Math.max(100, Math.round(intervalMs / speedMultiplier));
 
@@ -139,8 +140,8 @@ export const IntroLoader: React.FC<IntroLoaderProps> = ({
           initial={{ opacity: 1 }}
           exit={{
             opacity: 0,
-            scale: reducedMotion ? 1 : 1.02,
-            filter: reducedMotion ? 'none' : 'blur(12px)',
+            scale: prefersReducedMotion ? 1 : 1.02,
+            filter: prefersReducedMotion ? 'none' : 'blur(12px)',
           }}
           transition={{ duration: 0.65, ease: [0.22, 1, 0.36, 1] }}
           role="dialog"
@@ -184,8 +185,8 @@ export const IntroLoader: React.FC<IntroLoaderProps> = ({
             </motion.button>
           )}
 
-          {/* Center Stage: Multilingual Greeting */}
-          <div className="relative z-10 flex flex-col items-center justify-center text-center px-4 max-w-lg mx-auto">
+          {/* Center Stage: Indian Multilingual Greeting */}
+          <div className="relative z-10 flex flex-col items-center justify-center text-center px-6 max-w-4xl mx-auto">
             <motion.div
               key={`greeting-${greetingIndex}`}
               suppressHydrationWarning
@@ -193,9 +194,9 @@ export const IntroLoader: React.FC<IntroLoaderProps> = ({
               animate={{ opacity: 1, scale: 1, y: 0, filter: 'blur(0px)' }}
               exit={{ opacity: 0, scale: 1.03, y: -10, filter: 'blur(8px)' }}
               transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
-              className="flex items-center justify-center text-center gap-3"
+              className="flex items-center justify-center text-center py-2"
             >
-              <span className="text-3xl sm:text-4xl md:text-5xl font-medium text-[#FAFAFA] tracking-tight">
+              <span className="text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-medium text-[#FAFAFA] tracking-tight leading-[1.2]">
                 {currentGreeting.text}
               </span>
               {showLangBadge && currentGreeting.lang && (

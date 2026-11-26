@@ -119,8 +119,9 @@ export default function HeroScrollZoom() {
     if (p <= 0.002) {
       // Clean resting pose at the very start of the page
       if (zoomContainerRef.current) {
+        zoomContainerRef.current.style.willChange = "auto";
         zoomContainerRef.current.style.transformOrigin = "center center";
-        zoomContainerRef.current.style.transform = "translate3d(0px, 0px, 0) scale(1)";
+        zoomContainerRef.current.style.transform = "none";
         zoomContainerRef.current.style.opacity = "1";
         zoomContainerRef.current.style.visibility = "visible";
       }
@@ -139,6 +140,7 @@ export default function HeroScrollZoom() {
       }
     } else {
       if (zoomContainerRef.current) {
+        zoomContainerRef.current.style.willChange = "transform";
         zoomContainerRef.current.style.transformOrigin = `${targetGx.toFixed(1)}px ${targetGy.toFixed(1)}px`;
         zoomContainerRef.current.style.transform = `translate3d(${translateX.toFixed(2)}px, ${translateY.toFixed(2)}px, 0) scale(${scale.toFixed(3)})`;
         zoomContainerRef.current.style.opacity = "1";
@@ -193,6 +195,9 @@ export default function HeroScrollZoom() {
     };
 
     const onScroll = () => {
+      if (window.scrollY <= 12) {
+        applyScrollTransform();
+      }
       if (!rafId) rafId = requestAnimationFrame(handleScroll);
     };
 
@@ -204,6 +209,11 @@ export default function HeroScrollZoom() {
       if (rafId) cancelAnimationFrame(rafId);
     };
   }, [applyScrollTransform]);
+
+  // Re-sync scroll transforms immediately after state-driven re-renders
+  useEffect(() => {
+    applyScrollTransform();
+  }, [skyPaused, inkPaused, introDone, applyScrollTransform]);
 
   const handleIntroComplete = useCallback(() => {
     setIntroDone(true);
@@ -293,11 +303,7 @@ export default function HeroScrollZoom() {
           <div
             ref={zoomContainerRef}
             suppressHydrationWarning
-            className="absolute inset-0 z-10 flex items-center justify-center pointer-events-none [will-change:transform]"
-            style={{
-              transformOrigin: "center center",
-              transform: "translate3d(0px, 0px, 0) scale(1)",
-            }}
+            className="absolute inset-0 z-10 flex items-center justify-center pointer-events-none"
           >
             <div className="relative w-full max-w-7xl h-[34vh] min-h-[190px] max-h-[320px] px-4 flex items-center justify-center pointer-events-auto cursor-pointer">
               {/* Fluid Ink Simulation Canvas (Mouse interactive fluid stir, curl, and gather) */}
@@ -348,7 +354,7 @@ export default function HeroScrollZoom() {
           {/* Gentle Scroll Hint */}
           <div
             ref={hintRef}
-            className="absolute bottom-8 left-1/2 -translate-x-1/2 z-20 flex flex-col items-center gap-2 pointer-events-none transition-opacity duration-300"
+            className="absolute bottom-24 sm:bottom-28 left-1/2 -translate-x-1/2 z-20 flex flex-col items-center gap-2 pointer-events-none transition-opacity duration-300"
             style={{ opacity: 1 }}
           >
             <span className="text-[11px] font-medium tracking-[0.25em] uppercase text-white/80 drop-shadow-sm">

@@ -1,79 +1,181 @@
 "use client";
 
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState, useCallback, useSyncExternalStore } from "react";
+import { createPortal } from "react-dom";
 import * as THREE from "three";
-import { X } from "lucide-react";
+import { AnimatePresence, motion } from "framer-motion";
+import { X, ChevronLeft, ChevronRight, ChevronUp, ChevronDown } from "lucide-react";
 
-interface ShowcaseItem {
+const emptySubscribe = () => () => {};
+
+export interface WorkItem {
   title: string;
-  category: string;
+  subtext: string;
   image: string;
-  dockImage: string;
   video: string | null;
 }
 
-const SHOWCASE_ITEMS: ShowcaseItem[] = [
+export interface WorkCategory {
+  id: string;
+  title: string;
+  items: WorkItem[];
+}
+
+export const WORK_CATEGORIES: WorkCategory[] = [
   {
-    title: "A CLUB BUSINESSMAN",
-    category: "YOUTUBE THUMBNAIL / BRANDING",
-    image: "/assets/images/optimized/a_club_businessman.webp",
-    dockImage: "/assets/images/optimized/dock/a_club_businessman.webp",
-    video: null,
+    id: "motion-design",
+    title: "Motion Design",
+    items: [
+      {
+        title: "Freeflow Logo",
+        subtext: "Fluid vector morphing and kinetic brand identity reveal.",
+        image: "/assets/images/video_posters/freeflow_logo_thumb.jpg",
+        video: "/assets/videos/freeflow_logo.mp4",
+      },
+      {
+        title: "Posh Motion",
+        subtext: "Commercial pacing, visual rhythm, and typographic motion.",
+        image: "/assets/images/video_posters/posh_video_thumb.jpg",
+        video: "/assets/videos/posh_video.mp4",
+      },
+      {
+        title: "Tatva Identity",
+        subtext: "Geometric logo sting built with precision keyframing.",
+        image: "/assets/images/video_posters/tatva_logo_thumb.jpg",
+        video: "/assets/videos/tatva_logo.mp4",
+      },
+      {
+        title: "Ekam Kashi",
+        subtext: "Luminous brand mark reveal and minimal motion direction.",
+        image: "/assets/images/video_posters/ekam_kashi_thumb.jpg",
+        video: "/assets/videos/ekam_kashi_logo.mp4",
+      },
+      {
+        title: "Salt Logo",
+        subtext: "Clean corporate mark reveal with crisp typographic timing.",
+        image: "/assets/images/video_posters/salt_logo_thumb.jpg",
+        video: "/assets/videos/salt_logo.mp4",
+      },
+      {
+        title: "Zara Remake",
+        subtext: "Editorial kinetic typography and visual pacing study.",
+        image: "/assets/images/optimized/zara_remake.webp",
+        video: null,
+      },
+    ],
   },
   {
-    title: "A CLUB COUNTRY",
-    category: "YOUTUBE THUMBNAIL / BRANDING",
-    image: "/assets/images/optimized/a_club_country.webp",
-    dockImage: "/assets/images/optimized/dock/a_club_country.webp",
-    video: null,
+    id: "technology",
+    title: "Technology",
+    items: [
+      {
+        title: "FertiSure MedTech",
+        subtext: "Clinical telemetry platform and encrypted patient workflows.",
+        image: "/media/tech-showcase/fertisure_poster.webp",
+        video: "/media/tech-showcase/fertisure_landscape_1920x1080.mp4",
+      },
+      {
+        title: "AlphaTech Nutrition",
+        subtext: "3D interactive storefront engineered for performance commerce.",
+        image: "/media/tech-showcase/alphatech_poster.webp",
+        video: "/media/tech-showcase/alphatech_landscape_1920x1080.mp4",
+      },
+    ],
   },
   {
-    title: "YEMEN CRISIS",
-    category: "CINEMATIC DOCUMENTARY",
-    image: "/assets/images/video_posters/yemen_crisis_thumb.jpg",
-    dockImage: "/assets/images/optimized/dock/yemen_crisis_thumb.webp",
-    video: "/assets/videos/yemen_crisis.mp4",
+    id: "podcast-doc",
+    title: "Podcast & Doc",
+    items: [
+      {
+        title: "Yemen Crisis",
+        subtext: "Geopolitical documentary editing and narrative pacing.",
+        image: "/assets/images/video_posters/yemen_crisis_thumb.jpg",
+        video: "/assets/videos/yemen_crisis.mp4",
+      },
+      {
+        title: "Podcast Preview",
+        subtext: "Immersive horror audio storytelling and atmospheric cut.",
+        image: "/assets/images/video_posters/podcast_preview_thumb.jpg",
+        video: "/assets/videos/podcast_preview.mp4",
+      },
+      {
+        title: "China's Population",
+        subtext: "Data-led economic documentary with layered sound design.",
+        image: "/assets/images/video_posters/china_population_thumb.jpg",
+        video: "/assets/videos/china_population.mp4",
+      },
+      {
+        title: "Lt. Gen. Raj Shukla",
+        subtext: "Long-form defense interview with multi-camera editorial pacing.",
+        image: "/assets/images/video_posters/indian_military_thumb.jpg",
+        video: "/assets/videos/indian_military_podcast.mp4",
+      },
+      {
+        title: "The Free Flow Podcast",
+        subtext: "Full-length cultural dialogue edited for long-form retention.",
+        image: "/assets/images/video_posters/indian_culture_dying_thumb.jpg",
+        video: "/assets/videos/indian_culture_dying_podcast.mp4",
+      },
+    ],
   },
   {
-    title: "GAMING MONTAGE",
-    category: "HIGH ENERGY VIDEO EDIT",
-    image: "/assets/images/optimized/montage.webp",
-    dockImage: "/assets/images/optimized/dock/montage.webp",
-    video: null,
-  },
-  {
-    title: "PODCAST PREVIEW",
-    category: "STUDIO PODCAST PRODUCTION",
-    image: "/assets/images/video_posters/podcast_preview_thumb.jpg",
-    dockImage: "/assets/images/optimized/dock/podcast_preview_thumb.webp",
-    video: "/assets/videos/podcast_preview.mp4",
-  },
-  {
-    title: "ZARA REMAKE",
-    category: "KINETIC MOTION TYPOGRAPHY",
-    image: "/assets/images/optimized/zara_remake.webp",
-    dockImage: "/assets/images/optimized/dock/zara_remake.webp",
-    video: null,
-  },
-  {
-    title: "FREEFLOW LOGO",
-    category: "3D LOGO ANIMATION & IDENTITY",
-    image: "/assets/images/video_posters/freeflow_logo_thumb.jpg",
-    dockImage: "/assets/images/optimized/dock/freeflow_logo_thumb.webp",
-    video: "/assets/videos/freeflow_logo.mp4",
-  },
-  {
-    title: "HALLOW FACE",
-    category: "VISUAL MOTION ARTWORK",
-    image: "/assets/images/optimized/hallow_face.webp",
-    dockImage: "/assets/images/optimized/dock/hallow_face.webp",
-    video: null,
+    id: "social-media",
+    title: "Social Media",
+    items: [
+      {
+        title: "A Club Businessman",
+        subtext: "High-contrast YouTube packaging and visual hierarchy.",
+        image: "/assets/images/optimized/a_club_businessman.webp",
+        video: null,
+      },
+      {
+        title: "A Club Country",
+        subtext: "Bold editorial thumbnail artwork engineered for click-through.",
+        image: "/assets/images/optimized/a_club_country.webp",
+        video: null,
+      },
+      {
+        title: "EZSnippet Reel",
+        subtext: "Fast-paced tech commentary with custom motion overlays.",
+        image: "/assets/images/video_posters/ezsnippet_thumb.jpg",
+        video: "/assets/videos/ezsnippet.mp4",
+      },
+      {
+        title: "Gaming Montage",
+        subtext: "High-energy key art composition and lighting direction.",
+        image: "/assets/images/optimized/montage.webp",
+        video: null,
+      },
+      {
+        title: "Hallow Face",
+        subtext: "Atmospheric visual manipulation and social cover art.",
+        image: "/assets/images/optimized/hallow_face.webp",
+        video: null,
+      },
+    ],
   },
 ];
 
+interface GridCardMeta extends WorkItem {
+  categoryIndex: number;
+  itemIndex: number;
+  categoryTitle: string;
+}
+
+// 4x2 Grid order: Horizontal left+right pairs per category
+// Row 0: Motion Design (0, 1) | Technology (2, 3)
+// Row 1: Podcast & Doc (4, 5) | Social Media (6, 7)
+const SHOWCASE_GRID_ITEMS: GridCardMeta[] = WORK_CATEGORIES.flatMap((cat, catIdx) =>
+  cat.items.slice(0, 2).map((item, itemIdx) => ({
+    ...item,
+    categoryIndex: catIdx,
+    itemIndex: itemIdx,
+    categoryTitle: cat.title,
+  }))
+);
+
 const clamp = (x: number, a = 0, b = 1) => Math.min(b, Math.max(a, x));
 const mix = (a: number, b: number, t: number) => a + (b - a) * t;
-const ease = (t: number) => t * t * (3 - 2 * t);
 const out = (t: number) => 1 - Math.pow(1 - t, 3);
 const span = (p: number, a: number, b: number) => clamp((p - a) / (b - a));
 
@@ -91,57 +193,106 @@ interface GridCell {
 interface CardItem {
   i: number;
   title: string;
-  category: string;
+  categoryTitle: string;
+  categoryIndex: number;
+  itemIndex: number;
   v: HTMLVideoElement | null;
-  img: HTMLImageElement | null;
-  tex: THREE.Texture;
+  posterImg: HTMLImageElement;
+  posterTex: THREE.Texture;
+  videoTex: THREE.VideoTexture | null;
   geo: THREE.PlaneGeometry;
   mat: THREE.ShaderMaterial;
   mesh: THREE.Mesh;
   rect: GridCell | null;
+  cleanupVideo?: () => void;
+}
+
+interface PreviewSelection {
+  categoryIndex: number;
+  itemIndex: number;
 }
 
 export function OurWorkHero() {
-  const [activePreviewModal, setActivePreviewModal] = useState<ShowcaseItem | null>(null);
+  const [previewSelection, setPreviewSelection] = useState<PreviewSelection | null>(null);
+  const isClient = useSyncExternalStore(emptySubscribe, () => true, () => false);
   const trackRef = useRef<HTMLDivElement>(null);
   const stageRef = useRef<HTMLElement>(null);
-  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const canvasHostRef = useRef<HTMLDivElement>(null);
   const l1Ref = useRef<HTMLDivElement>(null);
-  const capRef = useRef<HTMLDivElement>(null);
   const glowRef = useRef<HTMLDivElement>(null);
   const crossRef = useRef<HTMLDivElement>(null);
-  const ruleRef = useRef<HTMLDivElement>(null);
   const nameRef = useRef<HTMLDivElement>(null);
   const gridLabelsRef = useRef<HTMLDivElement>(null);
   const cardLabelsRef = useRef<(HTMLDivElement | null)[]>([]);
+  const groupOverlayRef = useRef<HTMLDivElement>(null);
+  const groupBoxRefs = useRef<(HTMLDivElement | null)[]>([]);
 
-  // Close modal on Escape
+  const activeCategory = previewSelection ? WORK_CATEGORIES[previewSelection.categoryIndex] : null;
+  const activeItem =
+    previewSelection && activeCategory ? activeCategory.items[previewSelection.itemIndex] : null;
+
+  const stepCategory = useCallback((delta: number) => {
+    setPreviewSelection((prev) => {
+      if (!prev) return prev;
+      const nextCat = (prev.categoryIndex + delta + WORK_CATEGORIES.length) % WORK_CATEGORIES.length;
+      return { categoryIndex: nextCat, itemIndex: 0 };
+    });
+  }, []);
+
+  const stepItemInCategory = useCallback((delta: number) => {
+    setPreviewSelection((prev) => {
+      if (!prev) return prev;
+      const cat = WORK_CATEGORIES[prev.categoryIndex];
+      const nextItem = (prev.itemIndex + delta + cat.items.length) % cat.items.length;
+      return { categoryIndex: prev.categoryIndex, itemIndex: nextItem };
+    });
+  }, []);
+
+  // Keyboard navigation inside Apple-style big preview modal
   useEffect(() => {
+    if (!previewSelection) return;
+
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
-        setActivePreviewModal(null);
+        setPreviewSelection(null);
+      } else if (e.key === "ArrowLeft") {
+        e.preventDefault();
+        stepCategory(-1);
+      } else if (e.key === "ArrowRight") {
+        e.preventDefault();
+        stepCategory(1);
+      } else if (e.key === "ArrowUp") {
+        e.preventDefault();
+        stepItemInCategory(-1);
+      } else if (e.key === "ArrowDown") {
+        e.preventDefault();
+        stepItemInCategory(1);
       }
     };
-    if (activePreviewModal) {
-      window.addEventListener("keydown", handleKeyDown);
-      return () => window.removeEventListener("keydown", handleKeyDown);
-    }
-  }, [activePreviewModal]);
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [previewSelection, stepCategory, stepItemInCategory]);
 
   useEffect(() => {
-    const canvas = canvasRef.current;
-    const stage = stageRef.current;
+    const canvasHost = canvasHostRef.current;
     const track = trackRef.current;
-    if (!canvas || !stage || !track) return;
+    const stage = stageRef.current;
+    if (!canvasHost || !track || !stage) return;
 
-    /* ---------- renderer ---------- */
-    const renderer = new THREE.WebGLRenderer({
-      canvas,
-      antialias: true,
-      alpha: true,
-      powerPreference: "high-performance",
-    });
-    renderer.setClearColor(0, 0);
+    let disposed = false;
+
+    // Create a fresh canvas per mount so HMR / StrictMode never reuses a stale WebGL context
+    canvasHost.replaceChildren();
+    const canvas = document.createElement("canvas");
+    canvas.style.width = "100%";
+    canvas.style.height = "100%";
+    canvas.style.display = "block";
+    canvasHost.appendChild(canvas);
+
+    /* ---------- renderer & camera ---------- */
+    const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, powerPreference: "high-performance" });
+    renderer.setClearColor(0x0a0a0b, 1);
     renderer.outputColorSpace = THREE.LinearSRGBColorSpace;
     const scene = new THREE.Scene();
     const FOV = 35;
@@ -163,7 +314,6 @@ export function OurWorkHero() {
         const ph = mix(PH0, PH1, t);
         const cs = Math.cos(ph);
         const u = 2 * t - 1;
-        // A shallow arc close to the camera, then long runs far behind it
         const depth = cs > 0 ? 7.6 + 16.4 * Math.pow(cs, 0.9) : 7.6 + 2.2 * cs;
         const edge = 0.84 + 0.5 * span(0.14 - t, 0, 0.14) + 0.8 * span(t, 0.84, 1);
         pts.push(
@@ -186,12 +336,12 @@ export function OurWorkHero() {
       }
     }
 
-    const at = (s: number, op: THREE.Vector3, ot: THREE.Vector3) => {
+    const at = (s: number, outP: THREE.Vector3, outT: THREE.Vector3) => {
       const f = clamp(s / PATH_L) * SAMPLES;
-      const i = Math.min(SAMPLES - 1, Math.floor(f));
-      const k = f - i;
-      op.lerpVectors(pathP[i], pathP[i + 1], k);
-      ot.lerpVectors(pathT[i], pathT[i + 1], k).normalize();
+      const i = Math.min(SAMPLES - 1, f | 0);
+      const a = f - i;
+      outP.lerpVectors(pathP[i], pathP[i + 1], a);
+      outT.lerpVectors(pathT[i], pathT[i + 1], a).normalize();
     };
 
     /* ---------- cards ---------- */
@@ -224,14 +374,21 @@ export function OurWorkHero() {
         if(!gl_FrontFacing)uv.x=1.-uv.x;
         vec3 c=mix(vec3(.075),texture2D(map,(uv-.5)*cover+.5).rgb,ready);
         float edge=smoothstep(-.012-px,-.012,d);
-        gl_FragColor=vec4(mix(c,vec3(1.),edge*.1),a);
+        gl_FragColor=vec4(mix(c,vec3(1.),edge*.04),a);
       }
     `;
 
-    const cards: CardItem[] = SHOWCASE_ITEMS.map((item, i) => {
+    const cards: CardItem[] = SHOWCASE_GRID_ITEMS.map((item, i) => {
+      const posterImg = new Image();
+      posterImg.crossOrigin = "anonymous";
+      const posterTex = new THREE.Texture(posterImg);
+      posterTex.colorSpace = THREE.SRGBColorSpace;
+      posterTex.minFilter = THREE.LinearFilter;
+      posterTex.magFilter = THREE.LinearFilter;
+      posterTex.generateMipmaps = false;
+
       let v: HTMLVideoElement | null = null;
-      let img: HTMLImageElement | null = null;
-      let tex: THREE.Texture;
+      let videoTex: THREE.VideoTexture | null = null;
 
       if (item.video) {
         v = document.createElement("video");
@@ -244,19 +401,11 @@ export function OurWorkHero() {
           src: item.video,
         });
         v.setAttribute("playsinline", "");
-        tex = new THREE.VideoTexture(v);
-        tex.colorSpace = THREE.SRGBColorSpace;
-        tex.minFilter = THREE.LinearFilter;
-        tex.magFilter = THREE.LinearFilter;
-        tex.generateMipmaps = false;
-      } else {
-        img = new Image();
-        img.crossOrigin = "anonymous";
-        tex = new THREE.Texture(img);
-        tex.colorSpace = THREE.SRGBColorSpace;
-        tex.minFilter = THREE.LinearFilter;
-        tex.magFilter = THREE.LinearFilter;
-        tex.generateMipmaps = false;
+        videoTex = new THREE.VideoTexture(v);
+        videoTex.colorSpace = THREE.SRGBColorSpace;
+        videoTex.minFilter = THREE.LinearFilter;
+        videoTex.magFilter = THREE.LinearFilter;
+        videoTex.generateMipmaps = false;
       }
 
       const geo = new THREE.PlaneGeometry(1, 1, NX, NY);
@@ -266,7 +415,7 @@ export function OurWorkHero() {
         transparent: true,
         side: THREE.DoubleSide,
         uniforms: {
-          map: { value: tex },
+          map: { value: posterTex },
           cover: { value: new THREE.Vector2(1, 1) },
           aspect: { value: CARD_W / CARD_H },
           ready: { value: 0 },
@@ -277,38 +426,53 @@ export function OurWorkHero() {
       mesh.frustumCulled = false;
       scene.add(mesh);
 
-      if (v) {
-        v.addEventListener("loadeddata", () => {
-          const va = v.videoWidth / v.videoHeight;
+      let videoReady = false;
+      let cleanupVideo: (() => void) | undefined;
+
+      posterImg.onload = () => {
+        if (disposed) return;
+        posterTex.needsUpdate = true;
+        if (!videoReady) {
+          const va = (posterImg.naturalWidth || posterImg.width || 16) / (posterImg.naturalHeight || posterImg.height || 9);
           const ca = CARD_W / CARD_H;
           mat.uniforms.cover.value.set(va > ca ? ca / va : 1, va > ca ? 1 : va / ca);
           mat.uniforms.ready.value = 1;
-        });
-      } else if (img) {
-        img.onload = () => {
-          tex.needsUpdate = true;
-          const va = (img.naturalWidth || img.width || 1) / (img.naturalHeight || img.height || 1);
+        }
+      };
+      posterImg.src = item.image;
+
+      if (v && videoTex) {
+        const vt = videoTex;
+        const activateVideoTex = () => {
+          if (disposed || videoReady || !v || v.readyState < 2 || v.paused || v.currentTime < 0.04) return;
+          videoReady = true;
+          const va = (v.videoWidth || 16) / (v.videoHeight || 9);
           const ca = CARD_W / CARD_H;
+          mat.uniforms.map.value = vt;
           mat.uniforms.cover.value.set(va > ca ? ca / va : 1, va > ca ? 1 : va / ca);
           mat.uniforms.ready.value = 1;
+          v.removeEventListener("timeupdate", activateVideoTex);
         };
-        img.src = item.image;
+        v.addEventListener("timeupdate", activateVideoTex);
+        cleanupVideo = () => v.removeEventListener("timeupdate", activateVideoTex);
       }
 
-      const c: CardItem = {
+      return {
         i,
         title: item.title,
-        category: item.category,
+        categoryTitle: item.categoryTitle,
+        categoryIndex: item.categoryIndex,
+        itemIndex: item.itemIndex,
         v,
-        img,
-        tex,
+        posterImg,
+        posterTex,
+        videoTex,
         geo,
         mat,
         mesh,
         rect: null,
+        cleanupVideo,
       };
-
-      return c;
     });
 
     /* ---------- layout ---------- */
@@ -321,8 +485,8 @@ export function OurWorkHero() {
     let tanH = 0.3153;
 
     function resize() {
-      W = window.innerWidth;
-      H = window.innerHeight;
+      W = stage?.clientWidth || window.innerWidth;
+      H = stage?.clientHeight || window.innerHeight;
       asp = W / H;
       renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
       renderer.setSize(W, H, false);
@@ -330,8 +494,8 @@ export function OurWorkHero() {
       camera.fov = asp < 16 / 9 ? (Math.atan(0.561 / asp) * 360) / Math.PI : FOV;
       camera.updateProjectionMatrix();
       tanH = Math.tan((camera.fov * Math.PI) / 360);
-      cols = asp < 0.9 ? 2 : 4;
-      rows = asp < 0.9 ? 4 : 2;
+      cols = asp < 0.85 ? 2 : 4;
+      rows = asp < 0.85 ? 4 : 2;
     }
 
     window.addEventListener("resize", resize);
@@ -341,23 +505,57 @@ export function OurWorkHero() {
     function grid(i: number): GridCell {
       const vh = 2 * GZ * tanH;
       const vw = vh * asp;
-      const gw = vw * 0.88;
-      const gap = gw * 0.015;
-      const cw = (gw - gap * (cols - 1)) / cols;
-      const ch = cw / (CARD_W / CARD_H);
-      const gh = ch * rows + gap * 1.5 * (rows - 1);
-      const c = i % cols;
-      const r = Math.floor(i / cols);
-      return {
-        x: -gw / 2 + cw / 2 + c * (cw + gap),
-        y: gh / 2 - ch / 2 - r * (ch + gap * 1.5),
-        w: cw,
-        h: ch,
-        vw,
-        vh,
-        c,
-        r,
-      };
+      const item = SHOWCASE_GRID_ITEMS[i];
+      const catIdx = item.categoryIndex;
+      const slotIdx = item.itemIndex;
+
+      if (cols === 4) {
+        const gw = vw * 0.88;
+        const innerGap = gw * 0.016;
+        const groupGap = gw * 0.05;
+        const cw = (gw - innerGap * 2 - groupGap) / 4;
+        const ch = cw / (CARD_W / CARD_H);
+        const rowGap = Math.max(ch * 0.40, vh * 0.105);
+        const gh = ch * 2 + rowGap;
+
+        const pairCol = catIdx % 2;
+        const r = Math.floor(catIdx / 2);
+        const c = pairCol * 2 + slotIdx;
+        const xOffset =
+          (c >= 1 ? innerGap : 0) +
+          (c >= 2 ? groupGap : 0) +
+          (c === 3 ? innerGap : 0);
+
+        return {
+          x: -gw / 2 + cw / 2 + c * cw + xOffset,
+          y: gh / 2 - ch / 2 - r * (ch + rowGap) - vh * 0.036,
+          w: cw,
+          h: ch,
+          vw,
+          vh,
+          c,
+          r,
+        };
+      } else {
+        const gw = vw * 0.88;
+        const colGap = gw * 0.035;
+        const cw = (gw - colGap) / 2;
+        const ch = cw / (CARD_W / CARD_H);
+        const rowGap = Math.max(ch * 0.42, vh * 0.075);
+        const gh = ch * 4 + rowGap * 3;
+        const c = slotIdx;
+        const r = catIdx;
+        return {
+          x: -gw / 2 + cw / 2 + c * (cw + colGap),
+          y: gh / 2 - ch / 2 - r * (ch + rowGap) - vh * 0.02,
+          w: cw,
+          h: ch,
+          vw,
+          vh,
+          c,
+          r,
+        };
+      }
     }
 
     /* ---------- scroll ---------- */
@@ -387,6 +585,12 @@ export function OurWorkHero() {
       const prevInView = inView;
       inView = scrollY + vh > trackTop - 120 && scrollY < trackTop + trackH + 120;
 
+      if (!inView && scrollY + vh <= trackTop - 120 && p !== 0) {
+        target = 0;
+        p = 0;
+        render();
+      }
+
       if (inView && (!prevInView || !animId)) {
         if (!animId) animId = requestAnimationFrame(loop);
       }
@@ -411,13 +615,14 @@ export function OurWorkHero() {
           const lu = ix / NX - 0.5;
           const lv = 0.5 - iy / NY;
           at(centre + lu * CARD_W, op, ot);
-          // Keep the sheet upright, leaning a little into the turn
           up.copy(Y).addScaledVector(ot, -Y.dot(ot)).normalize();
           vp.copy(op).addScaledVector(up, lv * CARD_H);
           pos.setXYZ(k, vp.x, vp.y, vp.z);
         }
       }
       pos.needsUpdate = true;
+      c.geo.computeBoundingBox();
+      c.geo.computeBoundingSphere();
     }
 
     function poseGrid(c: CardItem, q: number) {
@@ -444,6 +649,8 @@ export function OurWorkHero() {
         }
       }
       pos.needsUpdate = true;
+      c.geo.computeBoundingBox();
+      c.geo.computeBoundingSphere();
       c.rect = g;
     }
 
@@ -453,16 +660,12 @@ export function OurWorkHero() {
     function render() {
       const pp = p;
 
-      // Title stays DEAD-CENTER in the viewport!
+      // Title stays DEAD-CENTER in the viewport
       const titleOpacity = 1 - span(pp, 0.62, 0.82);
       const titleScale = mix(1, 0.9, span(pp, 0, 0.65));
       if (l1Ref.current) {
         l1Ref.current.style.transform = `translate(-50%, -50%) scale(${titleScale.toFixed(3)})`;
         l1Ref.current.style.opacity = `${titleOpacity.toFixed(3)}`;
-      }
-      if (capRef.current) {
-        capRef.current.style.transform = `translate(-50%, calc(-50% + 4.6em)) scale(${titleScale.toFixed(3)})`;
-        capRef.current.style.opacity = `${titleOpacity.toFixed(3)}`;
       }
 
       const intro = 1 - span(pp, 0, 0.05);
@@ -470,12 +673,7 @@ export function OurWorkHero() {
       if (crossRef.current) crossRef.current.style.opacity = introStr;
       if (glowRef.current) glowRef.current.style.opacity = introStr;
 
-      if (ruleRef.current) {
-        ruleRef.current.style.transform = `scaleX(${ease(span(pp, 0.72, 0.86)).toFixed(4)})`;
-        ruleRef.current.style.top = "50%";
-      }
-
-      // Ribbon, then the grid
+      // Ribbon, then the 4x2 grouped grid
       const pr = span(pp, RIB_A, RIB_B);
       const head = mix(0, PATH_L + cards.length * STEP, pr);
 
@@ -487,7 +685,6 @@ export function OurWorkHero() {
           c.rect = null;
           if (c.mesh.visible) poseRibbon(c, head);
         } else if (c.i < cols * rows) {
-          // Each card flies to its slot the moment it leaves the rail
           const st = mix(RIB_A, RIB_B, (end + c.i * STEP) / (PATH_L + cards.length * STEP));
           const q = out(span(pp, st, st + 0.13));
           c.mesh.visible = q > 0.001;
@@ -498,26 +695,78 @@ export function OurWorkHero() {
         }
       }
 
-      // Position asset title labels directly on the grid cards (bottom-left corner)
-      if (gridLabelsRef.current) {
-        const gridProgress = span(pp, 0.82, 0.94);
-        gridLabelsRef.current.style.opacity = `${gridProgress.toFixed(3)}`;
+      const gridProgress = span(pp, 0.78, 0.88);
+
+      // Once crisp HTML cards fully cover the grid, hide duplicate WebGL meshes behind them
+      if (gridProgress >= 0.999) {
+        for (const c of cards) {
+          c.mesh.visible = false;
+        }
+      }
+
+      // Position integrated group header titles cleanly above each left+right pair (no outer box)
+      if (groupOverlayRef.current) {
+        groupOverlayRef.current.style.opacity = `${gridProgress.toFixed(3)}`;
         if (gridProgress > 0) {
-          for (const c of cards) {
-            const el = cardLabelsRef.current[c.i];
-            if (el && c.rect) {
-              const g = c.rect;
-              // Align to bottom-left corner inside the card boundary
-              const screenX = ((g.x - g.w * 0.46) / g.vw + 0.5) * W;
-              const screenY = (0.5 - (g.y - g.h * 0.44) / g.vh) * H;
-              el.style.left = `${screenX.toFixed(1)}px`;
-              el.style.top = `${screenY.toFixed(1)}px`;
+          for (let catIdx = 0; catIdx < WORK_CATEGORIES.length; catIdx++) {
+            const boxEl = groupBoxRefs.current[catIdx];
+            if (!boxEl) continue;
+
+            const firstCard = cards[catIdx * 2];
+            const secondCard = cards[catIdx * 2 + 1];
+            const g1 = firstCard?.rect;
+            const g2 = secondCard?.rect;
+
+            if (g1 && g2) {
+              const minX = Math.min(g1.x - g1.w / 2, g2.x - g2.w / 2);
+              const maxX = Math.max(g1.x + g1.w / 2, g2.x + g2.w / 2);
+              const maxY = Math.max(g1.y + g1.h / 2, g2.y + g2.h / 2);
+
+              const pxLeft = (minX / g1.vw + 0.5) * W;
+              const pxRight = (maxX / g1.vw + 0.5) * W;
+              const pxTop = (0.5 - maxY / g1.vh) * H;
+              const headerOffset = cols === 4 ? 46 : 36;
+
+              boxEl.style.left = `${pxLeft.toFixed(1)}px`;
+              boxEl.style.top = `${(pxTop - headerOffset).toFixed(1)}px`;
+              boxEl.style.width = `${(pxRight - pxLeft).toFixed(1)}px`;
+              boxEl.style.height = `${(headerOffset - 10).toFixed(1)}px`;
             }
           }
         }
       }
 
-      renderer.render(scene, camera);
+      // Position full-bleed clickable grid cards (crisp images + bottom-left white titles)
+      if (gridLabelsRef.current) {
+        gridLabelsRef.current.style.opacity = `${gridProgress.toFixed(3)}`;
+        const interactive = gridProgress > 0.25 ? "auto" : "none";
+        if (gridProgress > 0) {
+          for (const c of cards) {
+            const el = cardLabelsRef.current[c.i];
+            if (el && c.rect) {
+              const g = c.rect;
+              const pxLeft = ((g.x - g.w / 2) / g.vw + 0.5) * W;
+              const pxTop = (0.5 - (g.y + g.h / 2) / g.vh) * H;
+              const pxWidth = (g.w / g.vw) * W;
+              const pxHeight = (g.h / g.vh) * H;
+              el.style.left = `${pxLeft.toFixed(1)}px`;
+              el.style.top = `${pxTop.toFixed(1)}px`;
+              el.style.width = `${pxWidth.toFixed(1)}px`;
+              el.style.height = `${pxHeight.toFixed(1)}px`;
+              el.style.pointerEvents = interactive;
+            }
+          }
+        } else {
+          for (const c of cards) {
+            const el = cardLabelsRef.current[c.i];
+            if (el) el.style.pointerEvents = "none";
+          }
+        }
+      }
+
+      if (!disposed) {
+        renderer.render(scene, camera);
+      }
     }
 
     /* ---------- 3D hover & click to preview ---------- */
@@ -541,16 +790,19 @@ export function OurWorkHero() {
 
       stage.style.cursor = hit ? "pointer" : "default";
 
+      // Only show floating hover label during the 3D ribbon before grid labels appear
       if (nameEl) {
-        nameEl.style.opacity = hit ? "1" : "0";
-        if (hit) {
+        const showHoverLabel = Boolean(hit) && p < 0.84;
+        nameEl.style.opacity = showHoverLabel ? "1" : "0";
+        if (showHoverLabel && hit) {
           nameEl.innerHTML = `
             <div style="pointer-events:none;text-align:left;">
-              <div style="font-weight:700;font-size:18px;color:#ffffff;letter-spacing:0.02em;text-shadow:0 2px 14px rgba(0,0,0,0.95);line-height:1.2;text-transform:uppercase;">${hit.title}</div>
-              <div style="font-size:11.5px;color:rgba(255,255,255,0.8);letter-spacing:0.06em;margin-top:3px;text-shadow:0 1px 6px rgba(0,0,0,0.95);font-family:monospace;text-transform:uppercase;">${hit.category}</div>
+              <div style="font-weight:600;font-size:15px;color:#ffffff;letter-spacing:-0.01em;text-shadow:0 2px 12px rgba(0,0,0,0.9);line-height:1.25;">${hit.title}</div>
+              <div style="font-size:11px;color:rgba(255,255,255,0.68);margin-top:2px;text-shadow:0 1px 6px rgba(0,0,0,0.9);">${hit.categoryTitle}</div>
             </div>
           `;
-          nameEl.style.transform = `translate(${e.clientX + 14}px,${e.clientY + 16}px)`;
+          const offsetX = e.clientX > W - 200 ? -160 : 14;
+          nameEl.style.transform = `translate(${e.clientX + offsetX}px,${e.clientY + 14}px)`;
         }
       }
     };
@@ -566,7 +818,10 @@ export function OurWorkHero() {
         const hitMesh = intersects[0].object;
         const hit = cards.find((c) => c.mesh === hitMesh);
         if (hit) {
-          setActivePreviewModal(SHOWCASE_ITEMS[hit.i]);
+          setPreviewSelection({
+            categoryIndex: hit.categoryIndex,
+            itemIndex: hit.itemIndex,
+          });
         }
       }
     };
@@ -605,6 +860,7 @@ export function OurWorkHero() {
     }
 
     return () => {
+      disposed = true;
       if (animId) cancelAnimationFrame(animId);
       window.removeEventListener("resize", resize);
       window.removeEventListener("resize", updateTrackMetrics);
@@ -613,23 +869,32 @@ export function OurWorkHero() {
       stage.removeEventListener("click", handleStageClick);
 
       cards.forEach((c) => {
+        c.cleanupVideo?.();
         if (c.v) {
           c.v.pause();
           c.v.removeAttribute("src");
           c.v.load();
         }
-        if (c.img) {
-          c.img.onload = null;
-          c.img.src = "";
-        }
-        c.tex.dispose();
+        c.posterImg.onload = null;
+        c.posterImg.src = "";
+        c.posterTex.dispose();
+        if (c.videoTex) c.videoTex.dispose();
         c.geo.dispose();
         c.mat.dispose();
       });
 
+      scene.clear();
       renderer.dispose();
+      canvas.remove();
     };
   }, []);
+
+  const prevCategoryTitle = previewSelection
+    ? WORK_CATEGORIES[(previewSelection.categoryIndex - 1 + WORK_CATEGORIES.length) % WORK_CATEGORIES.length].title
+    : "";
+  const nextCategoryTitle = previewSelection
+    ? WORK_CATEGORIES[(previewSelection.categoryIndex + 1) % WORK_CATEGORIES.length].title
+    : "";
 
   return (
     <section className="vante-wrapper relative w-full select-none" aria-label="Our Work Portfolio">
@@ -676,23 +941,6 @@ export function OurWorkHero() {
           display: inline-block;
           margin: 0 !important;
         }
-        #vante-cap {
-          position: absolute;
-          left: 50%;
-          top: 50%;
-          transform: translate(-50%, calc(-50% + 4.6em));
-          text-align: center;
-          font-size: clamp(10px, 0.8vw, 13px);
-          font-weight: 500;
-          font-family: 'IBM Plex Mono', monospace;
-          line-height: 1.3;
-          letter-spacing: 0.12em;
-          text-transform: uppercase;
-          color: var(--mid);
-          pointer-events: none;
-          z-index: 2;
-          white-space: nowrap;
-        }
         #vante-gl {
           position: absolute;
           inset: 0;
@@ -730,18 +978,6 @@ export function OurWorkHero() {
           padding: 0 0.3em;
           line-height: 1.2;
         }
-        #vante-rule {
-          position: absolute;
-          left: 3.5vw;
-          right: 3.5vw;
-          top: 50%;
-          height: 1px;
-          background: var(--line);
-          transform-origin: left;
-          transform: scaleX(0);
-          pointer-events: none;
-          z-index: 5;
-        }
         #vante-name {
           position: absolute;
           left: 0;
@@ -763,104 +999,301 @@ export function OurWorkHero() {
             </div>
           </h1>
 
-          <div id="vante-cap" ref={capRef}>
-            CREATIVE PRODUCTION / MOTION / 3D
-          </div>
-
           <div id="vante-glow" ref={glowRef}></div>
           <div id="vante-cross" ref={crossRef}>
             <i>+</i>
           </div>
-          <div id="vante-rule" ref={ruleRef}></div>
 
-          <canvas id="vante-gl" ref={canvasRef}></canvas>
+          <div id="vante-gl" ref={canvasHostRef}></div>
 
-          {/* Grid Asset Titles Overlay - Simple white text, NO chip, toward left corner, bit big */}
+          {/* 4x2 Integrated Category Headers (No outer box borders) */}
           <div
-            ref={gridLabelsRef}
-            className="pointer-events-none absolute inset-0 z-20 transition-opacity duration-300"
+            ref={groupOverlayRef}
+            className="pointer-events-none absolute inset-0 z-10"
             style={{ opacity: 0 }}
           >
-            {SHOWCASE_ITEMS.map((item, idx) => (
+            {WORK_CATEGORIES.map((category, catIdx) => (
               <div
-                key={item.title}
+                key={category.id}
                 ref={(el) => {
-                  cardLabelsRef.current[idx] = el;
+                  groupBoxRefs.current[catIdx] = el;
                 }}
-                className="absolute flex flex-col items-start pointer-events-auto cursor-pointer select-none text-left"
-                style={{ transform: "translateY(-100%)" }}
-                onClick={() => setActivePreviewModal(item)}
+                className="absolute flex items-end pointer-events-none"
               >
-                <span className="text-white text-base sm:text-lg font-bold tracking-tight uppercase leading-snug drop-shadow-[0_2px_10px_rgba(0,0,0,0.95)]">
-                  {item.title}
-                </span>
-                <span className="text-white/80 text-[11px] font-mono tracking-wider uppercase drop-shadow-[0_1px_5px_rgba(0,0,0,0.95)] mt-0.5">
-                  {item.category}
-                </span>
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setPreviewSelection({ categoryIndex: catIdx, itemIndex: 0 });
+                  }}
+                  className="pointer-events-auto flex w-full items-center justify-center border-b border-white/[0.10] pb-2 text-center text-lg sm:text-xl md:text-2xl font-semibold tracking-tight text-white/95 hover:text-white transition-colors cursor-pointer"
+                >
+                  <span>{category.title}</span>
+                </button>
               </div>
             ))}
           </div>
 
-          {/* Top navigation removed per user request */}
+          {/* Grid Cards Overlay: Crisp Images + Click Anywhere + Bold Bottom-Left White Titles */}
+          <div
+            ref={gridLabelsRef}
+            className="pointer-events-none absolute inset-0 z-20"
+            style={{ opacity: 0 }}
+          >
+            {SHOWCASE_GRID_ITEMS.map((item, idx) => (
+              <div
+                key={`${item.title}-${idx}`}
+                ref={(el) => {
+                  cardLabelsRef.current[idx] = el;
+                }}
+                className="absolute"
+              >
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setPreviewSelection({
+                      categoryIndex: item.categoryIndex,
+                      itemIndex: item.itemIndex,
+                    });
+                  }}
+                  aria-label={`Open ${item.title} preview`}
+                  className="group relative h-full w-full overflow-hidden rounded-[10px] bg-[#0a0a0b] transition-transform duration-300 ease-out hover:scale-[1.015] cursor-pointer text-left"
+                >
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={item.image}
+                    alt={item.title}
+                    draggable={false}
+                    className="h-full w-full object-cover transition-transform duration-500 ease-out group-hover:scale-[1.04]"
+                  />
+                  <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/85 via-black/20 to-transparent" />
+                  <span className="pointer-events-none absolute bottom-3 left-3.5 right-3.5 text-white text-sm sm:text-base font-semibold tracking-tight leading-tight drop-shadow-[0_2px_10px_rgba(0,0,0,0.95)] truncate">
+                    {item.title}
+                  </span>
+                </button>
+              </div>
+            ))}
+          </div>
 
           <div id="vante-name" ref={nameRef}></div>
         </main>
       </div>
 
-      {/* Fullscreen Asset Preview Modal */}
-      {activePreviewModal && (
-        <div
-          role="dialog"
-          aria-modal="true"
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/92 backdrop-blur-md p-4"
-          onClick={() => setActivePreviewModal(null)}
-        >
-          <div
-            className="relative w-full max-w-4xl rounded-2xl overflow-hidden border border-[rgba(244,241,234,0.25)] bg-[#0a0a0b] shadow-2xl flex flex-col"
-            onClick={(e) => e.stopPropagation()}
-          >
-            {/* Modal Header */}
-            <div className="flex items-center justify-between px-5 py-3.5 bg-[#111113] border-b border-[rgba(244,241,234,0.12)]">
-              <div>
-                <span className="text-sm font-semibold tracking-wide text-[#f4f1ea]">
-                  {activePreviewModal.title}
-                </span>
-                <span className="ml-3 text-[10px] font-mono tracking-widest uppercase text-neutral-400">
-                  {activePreviewModal.category}
-                </span>
-              </div>
-              <button
-                type="button"
-                onClick={() => setActivePreviewModal(null)}
-                className="p-1.5 rounded-full text-neutral-400 hover:text-white hover:bg-white/10 transition-colors cursor-pointer"
-                aria-label="Close modal"
+      {/* Apple-Style Minimal Big Preview Modal (Portaled above dock & floating triggers) */}
+      {isClient &&
+        createPortal(
+          <AnimatePresence>
+            {previewSelection && activeCategory && activeItem && (
+              <motion.div
+                key="apple-preview-modal"
+                role="dialog"
+                aria-modal="true"
+                aria-label={`${activeCategory.title}: ${activeItem.title}`}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.24, ease: [0.22, 1, 0.36, 1] }}
+                className="fixed inset-0 z-[120] flex items-center justify-center bg-[#050507]/85 backdrop-blur-2xl p-3 sm:p-6"
+                onClick={() => setPreviewSelection(null)}
               >
-                <X className="h-5 w-5" />
-              </button>
-            </div>
+                {/* Minimal Top-Right Close Button */}
+                <button
+                  type="button"
+                  onClick={() => setPreviewSelection(null)}
+                  aria-label="Close preview"
+                  className="fixed top-5 right-5 z-[130] flex h-10 w-10 items-center justify-center rounded-full bg-white/[0.1] text-white/85 backdrop-blur-md ring-1 ring-white/15 transition-colors hover:bg-white/[0.18] hover:text-white cursor-pointer"
+                >
+                  <X className="h-4 w-4" />
+                </button>
 
-            {/* Video or Image Preview */}
-            <div className="relative aspect-video w-full bg-black overflow-hidden flex items-center justify-center">
-              {activePreviewModal.video ? (
-                <video
-                  src={activePreviewModal.video}
-                  autoPlay
-                  controls
-                  playsInline
-                  className="w-full h-full object-contain"
-                />
-              ) : (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img
-                  src={activePreviewModal.image}
-                  alt={activePreviewModal.title}
-                  className="w-full h-full object-contain"
-                />
-              )}
-            </div>
-          </div>
-        </div>
-      )}
+            <motion.div
+              initial={{ opacity: 0, scale: 0.97, y: 8 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.97, y: 8 }}
+              transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
+              className="relative flex w-full max-w-[96vw] xl:max-w-[1460px] flex-col items-center gap-4"
+              onClick={(e) => e.stopPropagation()}
+            >
+              {/* Main Row: Left (Category) + Big Preview + Vertical Up/Down (Same Category) + Right (Category) */}
+              <div className="flex w-full items-center justify-center gap-2 sm:gap-4">
+                {/* Left Button: Previous Category */}
+                <button
+                  type="button"
+                  onClick={() => stepCategory(-1)}
+                  aria-label={`Previous category: ${prevCategoryTitle}`}
+                  className="hidden md:flex flex-col items-center gap-2 group w-16 lg:w-20 shrink-0 cursor-pointer"
+                >
+                  <span className="flex h-10 w-10 items-center justify-center rounded-full bg-white/[0.06] ring-1 ring-white/[0.09] text-white/75 transition-all group-hover:bg-white/[0.14] group-hover:text-white group-active:scale-95">
+                    <ChevronLeft className="h-5 w-5" />
+                  </span>
+                  <span className="text-[11px] font-medium text-white/40 group-hover:text-white/75 transition-colors text-center leading-tight">
+                    {prevCategoryTitle}
+                  </span>
+                </button>
+
+                {/* Big Media Stage */}
+                <div className="relative w-full max-w-[min(86vw,calc(78vh*1.7778))] md:max-w-[min(78vw,calc(78vh*1.7778))] aspect-video overflow-hidden rounded-2xl sm:rounded-[22px] bg-black ring-1 ring-white/[0.12] shadow-[0_32px_90px_rgba(0,0,0,0.85)]">
+                  <AnimatePresence mode="wait">
+                    <motion.div
+                      key={`${activeCategory.id}-${activeItem.title}`}
+                      initial={{ opacity: 0.2, scale: 0.992 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      exit={{ opacity: 0.2, scale: 0.992 }}
+                      transition={{ duration: 0.2, ease: "easeOut" }}
+                      className="h-full w-full flex items-center justify-center bg-black"
+                    >
+                      {activeItem.video ? (
+                        <video
+                          key={activeItem.video}
+                          src={activeItem.video}
+                          poster={activeItem.image}
+                          autoPlay
+                          controls
+                          playsInline
+                          loop
+                          className="h-full w-full object-contain bg-black"
+                        />
+                      ) : (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img
+                          src={activeItem.image}
+                          alt={activeItem.title}
+                          className="h-full w-full object-contain bg-black"
+                        />
+                      )}
+                    </motion.div>
+                  </AnimatePresence>
+                </div>
+
+                {/* Vertical Up / Down Control: Switch Items Within Same Category */}
+                <div className="hidden sm:flex flex-col items-center gap-2.5 shrink-0">
+                  <button
+                    type="button"
+                    onClick={() => stepItemInCategory(-1)}
+                    aria-label="Previous project in category"
+                    className="flex h-9 w-9 items-center justify-center rounded-full bg-white/[0.06] ring-1 ring-white/[0.09] text-white/75 transition-all hover:bg-white/[0.14] hover:text-white active:scale-95 cursor-pointer"
+                  >
+                    <ChevronUp className="h-4 w-4" />
+                  </button>
+
+                  <div className="flex flex-col items-center gap-1.5 py-1">
+                    {activeCategory.items.map((item, idx) => {
+                      const isActive = idx === previewSelection.itemIndex;
+                      return (
+                        <button
+                          key={item.title}
+                          type="button"
+                          aria-label={`Show ${item.title}`}
+                          onClick={() =>
+                            setPreviewSelection({
+                              categoryIndex: previewSelection.categoryIndex,
+                              itemIndex: idx,
+                            })
+                          }
+                          className={`rounded-full transition-all cursor-pointer ${
+                            isActive
+                              ? "h-3.5 w-1 bg-white"
+                              : "h-1 w-1 bg-white/30 hover:bg-white/60"
+                          }`}
+                        />
+                      );
+                    })}
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={() => stepItemInCategory(1)}
+                    aria-label="Next project in category"
+                    className="flex h-9 w-9 items-center justify-center rounded-full bg-white/[0.06] ring-1 ring-white/[0.09] text-white/75 transition-all hover:bg-white/[0.14] hover:text-white active:scale-95 cursor-pointer"
+                  >
+                    <ChevronDown className="h-4 w-4" />
+                  </button>
+                </div>
+
+                {/* Right Button: Next Category */}
+                <button
+                  type="button"
+                  onClick={() => stepCategory(1)}
+                  aria-label={`Next category: ${nextCategoryTitle}`}
+                  className="hidden md:flex flex-col items-center gap-2 group w-16 lg:w-20 shrink-0 cursor-pointer"
+                >
+                  <span className="flex h-10 w-10 items-center justify-center rounded-full bg-white/[0.06] ring-1 ring-white/[0.09] text-white/75 transition-all group-hover:bg-white/[0.14] group-hover:text-white group-active:scale-95">
+                    <ChevronRight className="h-5 w-5" />
+                  </span>
+                  <span className="text-[11px] font-medium text-white/40 group-hover:text-white/75 transition-colors text-center leading-tight">
+                    {nextCategoryTitle}
+                  </span>
+                </button>
+              </div>
+
+              {/* Minimal Editorial Footer: Little Text (Headline + Subtext) */}
+              <div className="flex w-full max-w-[min(86vw,calc(78vh*1.7778))] md:max-w-[min(78vw,calc(78vh*1.7778))] flex-col sm:flex-row sm:items-end justify-between gap-4 px-1">
+                <div className="text-left">
+                  <p className="text-xs font-medium text-white/45">
+                    {activeCategory.title}
+                  </p>
+                  <h2 className="mt-0.5 text-lg sm:text-xl font-medium tracking-tight text-white">
+                    {activeItem.title}
+                  </h2>
+                  <p className="mt-1 text-sm text-white/60 max-w-xl leading-relaxed">
+                    {activeItem.subtext}
+                  </p>
+                </div>
+
+                {/* Mobile / Compact Controls + Subtle Desktop Hint */}
+                <div className="flex items-center justify-between sm:justify-end gap-3 shrink-0">
+                  {/* Compact Left/Right Category Controls on Tablet/Mobile */}
+                  <div className="flex md:hidden items-center gap-1.5">
+                    <button
+                      type="button"
+                      onClick={() => stepCategory(-1)}
+                      aria-label={`Previous category: ${prevCategoryTitle}`}
+                      className="flex h-8 w-8 items-center justify-center rounded-full bg-white/[0.07] ring-1 ring-white/10 text-white/80 hover:bg-white/[0.15] cursor-pointer"
+                    >
+                      <ChevronLeft className="h-4 w-4" />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => stepCategory(1)}
+                      aria-label={`Next category: ${nextCategoryTitle}`}
+                      className="flex h-8 w-8 items-center justify-center rounded-full bg-white/[0.07] ring-1 ring-white/10 text-white/80 hover:bg-white/[0.15] cursor-pointer"
+                    >
+                      <ChevronRight className="h-4 w-4" />
+                    </button>
+                  </div>
+
+                  {/* Compact Up/Down Item Controls on Mobile */}
+                  <div className="flex sm:hidden items-center gap-1.5">
+                    <button
+                      type="button"
+                      onClick={() => stepItemInCategory(-1)}
+                      aria-label="Previous project in category"
+                      className="flex h-8 w-8 items-center justify-center rounded-full bg-white/[0.07] ring-1 ring-white/10 text-white/80 hover:bg-white/[0.15] cursor-pointer"
+                    >
+                      <ChevronUp className="h-4 w-4" />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => stepItemInCategory(1)}
+                      aria-label="Next project in category"
+                      className="flex h-8 w-8 items-center justify-center rounded-full bg-white/[0.07] ring-1 ring-white/10 text-white/80 hover:bg-white/[0.15] cursor-pointer"
+                    >
+                      <ChevronDown className="h-4 w-4" />
+                    </button>
+                  </div>
+
+                  <span className="hidden md:inline-block text-[11px] text-white/35 tracking-wide">
+                    ← → Category &nbsp;·&nbsp; ↑ ↓ More in {activeCategory.title}
+                  </span>
+                </div>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>,
+          document.body
+        )}
     </section>
   );
 }
